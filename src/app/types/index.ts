@@ -3,7 +3,6 @@ export interface VocabularyEntry {
   french: string;
   english: string;
   example?: string;
-  audioUrl?: string;
   createdAt: string;
   lastReviewed?: string;
   nextReview?: string;

@@ -13,19 +13,18 @@ export default function VocabularyForm({ onSubmit, initialData }: VocabularyForm
     french: initialData?.french || '',
     english: initialData?.english || '',
     example: initialData?.example || '',
-    audioUrl: initialData?.audioUrl || '',
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit(formData);
     if (!initialData) {
-      setFormData({ french: '', english: '', example: '', audioUrl: '' });
+      setFormData({ french: '', english: '', example: '' });
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4 bg-white p-6 rounded-lg shadow-sm">
       <div>
         <label htmlFor="french" className="block text-sm font-medium text-gray-700">
           Mot Français
@@ -58,31 +57,19 @@ export default function VocabularyForm({ onSubmit, initialData }: VocabularyForm
         <label htmlFor="example" className="block text-sm font-medium text-gray-700">
           Exemple (optionnel)
         </label>
-        <input
-          type="text"
+        <textarea
           id="example"
           value={formData.example}
           onChange={(e) => setFormData({ ...formData, example: e.target.value })}
+          rows={3}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-        />
-      </div>
-
-      <div>
-        <label htmlFor="audioUrl" className="block text-sm font-medium text-gray-700">
-          Audio URL (optionnel)
-        </label>
-        <input
-          type="url"
-          id="audioUrl"
-          value={formData.audioUrl}
-          onChange={(e) => setFormData({ ...formData, audioUrl: e.target.value })}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          placeholder="Ex: Je vais à la bibliothèque."
         />
       </div>
 
       <button
         type="submit"
-        className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+        className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
       >
         {initialData ? 'Update' : 'Add'} Vocabulary
       </button>

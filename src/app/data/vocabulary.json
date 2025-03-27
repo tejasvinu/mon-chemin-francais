@@ -1,3 +1,48 @@
 {
-  "entries": []
+  "entries": [
+    {
+      "id": "vocab-1",
+      "french": "Bonjour",
+      "english": "Hello",
+      "example": "Bonjour, comment allez-vous ?",
+      "audioUrl": null,
+      "createdAt": "2025-03-27T08:00:00.000Z",
+      "lastReviewed": "2025-03-27T14:57:50.373Z",
+      "nextReview": "2025-03-28T14:57:50.372Z",
+      "srsLevel": 1
+    },
+    {
+      "id": "vocab-2",
+      "french": "Merci",
+      "english": "Thank you",
+      "example": "Merci beaucoup pour votre aide.",
+      "audioUrl": null,
+      "createdAt": "2025-03-27T08:01:00.000Z",
+      "lastReviewed": null,
+      "nextReview": null,
+      "srsLevel": 0
+    },
+    {
+      "id": "vocab-3",
+      "french": "Chat",
+      "english": "Cat",
+      "example": "Le chat dort sur le canapé.",
+      "audioUrl": "https://example.com/audio/chat.mp3",
+      "createdAt": "2025-03-27T08:02:00.000Z",
+      "lastReviewed": "2025-03-27T14:57:51.925Z",
+      "nextReview": "2025-03-28T14:57:51.925Z",
+      "srsLevel": 1
+    },
+    {
+      "id": "vocab-4",
+      "french": "Manger",
+      "english": "To eat",
+      "example": "Je vais manger une pomme.",
+      "audioUrl": null,
+      "createdAt": "2025-03-27T08:03:00.000Z",
+      "lastReviewed": null,
+      "nextReview": null,
+      "srsLevel": 0
+    }
+  ]
 }
