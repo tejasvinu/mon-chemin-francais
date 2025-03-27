@@ -2,48 +2,128 @@
 
 import { useEffect, useState } from 'react';
 import VocabularyList from '../components/VocabularyList';
-import { VocabularyEntry } from '../types';
+import VocabularyForm from '../components/VocabularyForm';
 import { BookOpenIcon, ArrowPathIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
+import withAuth from '../components/withAuth';
+import { useSession } from 'next-auth/react';
 
-export default function VocabularyPage() {
-  const [entries, setEntries] = useState<VocabularyEntry[]>([]);
+function VocabularyPage() {
+  const [entries, setEntries] = useState<any[]>([]);
+  const [filteredEntries, setFilteredEntries] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isFormVisible, setIsFormVisible] = useState(false);
+  const [editingEntry, setEditingEntry] = useState<any | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const { data: session } = useSession();
 
   useEffect(() => {
-    fetchEntries();
+    fetchVocabulary();
   }, []);
 
-  const fetchEntries = async () => {
+  useEffect(() => {
+    if (searchTerm) {
+      const filtered = entries.filter(
+        entry => 
+          entry.french.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          entry.english.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (entry.example && entry.example.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (entry.notes && entry.notes.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (entry.category && entry.category.toLowerCase().includes(searchTerm.toLowerCase()))
+      );
+      setFilteredEntries(filtered);
+    } else {
+      setFilteredEntries(entries);
+    }
+  }, [entries, searchTerm]);
+
+  const fetchVocabulary = async () => {
     setIsLoading(true);
+    setError(null);
     try {
       const response = await fetch('/api/vocabulary');
+      if (!response.ok) {
+        throw new Error('Failed to fetch vocabulary');
+      }
       const data = await response.json();
-      setEntries(data.entries);
+      setEntries(data.entries || []);
     } catch (error) {
-      console.error('Failed to fetch vocabulary entries:', error);
+      console.error('Failed to fetch vocabulary:', error);
+      setError('Failed to load vocabulary. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Remove all editing/adding functionality
+  const handleSubmit = async (entry: any) => {
+    try {
+      const isEditing = Boolean(entry._id);
+      const method = isEditing ? 'PUT' : 'POST';
+      
+      const response = await fetch('/api/vocabulary', {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(entry),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to save vocabulary');
+      }
+      
+      const savedEntry = await response.json();
+      
+      if (isEditing) {
+        setEntries(entries.map(e => e._id === savedEntry._id ? savedEntry : e));
+      } else {
+        setEntries([savedEntry, ...entries]);
+      }
+      
+      setIsFormVisible(false);
+      setEditingEntry(null);
+    } catch (error) {
+      console.error('Error saving vocabulary:', error);
+      setError('Failed to save. Please try again.');
+    }
+  };
+
+  const handleEdit = (entry: any) => {
+    setEditingEntry(entry);
+    setIsFormVisible(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const handleDelete = async (id: string) => {
-    // No-op function to satisfy props
-    console.log("Deletion disabled");
+    try {
+      const response = await fetch(`/api/vocabulary?id=${id}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to delete vocabulary');
+      }
+      
+      setEntries(entries.filter(entry => entry._id !== id));
+    } catch (error) {
+      console.error('Error deleting vocabulary:', error);
+      setError('Failed to delete. Please try again.');
+    }
   };
 
-  const handleEdit = (entry: VocabularyEntry) => {
-    // No-op function to satisfy props
-    console.log("Editing disabled");
+  const handleAddClick = () => {
+    setEditingEntry(null);
+    setIsFormVisible(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const filteredEntries = searchTerm 
-    ? entries.filter(entry => 
-        entry.french.toLowerCase().includes(searchTerm.toLowerCase()) || 
-        entry.english.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    : entries;
+  const handleFormCancel = () => {
+    setIsFormVisible(false);
+    setEditingEntry(null);
+  };
+
+  // Get unique categories from entries for the sidebar
+  const categories = Array.from(new Set(entries.map(entry => entry.category || 'Uncategorized')));
 
   return (
     <div className="page-container">
@@ -52,17 +132,17 @@ export default function VocabularyPage() {
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl flex items-center">
               <BookOpenIcon className="h-8 w-8 text-blue-600 mr-2" />
-              <span>French Vocabulary</span>
+              <span>My Vocabulary</span>
             </h1>
             <p className="mt-2 text-lg text-gray-600 max-w-3xl">
-              Browse our curated collection of essential French vocabulary.
+              Build and review your personal French vocabulary collection.
             </p>
           </div>
-          <div className="mt-4 md:mt-0">
-            <button 
-              onClick={fetchEntries} 
+          <div className="mt-4 md:mt-0 flex space-x-2">
+            <button
+              onClick={fetchVocabulary}
               className="btn btn-ghost"
-              aria-label="Refresh vocabulary list"
+              aria-label="Refresh vocabulary"
               disabled={isLoading}
             >
               <ArrowPathIcon className={`h-5 w-5 mr-1 ${isLoading ? 'animate-spin' : ''}`} />
@@ -71,6 +151,36 @@ export default function VocabularyPage() {
           </div>
         </div>
       </header>
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-md mb-6">
+          {error}
+          <button onClick={() => setError(null)} className="ml-2 font-medium">Dismiss</button>
+        </div>
+      )}
+
+      {isFormVisible && (
+        <div className="card p-6 mb-8 animate-slide-in">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold text-gray-900">
+              {editingEntry ? 'Edit Vocabulary' : 'Add New Vocabulary'}
+            </h2>
+            <button 
+              onClick={handleFormCancel}
+              className="text-gray-500 hover:text-gray-700"
+              aria-label="Close form"
+            >
+              <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <VocabularyForm 
+            onSubmit={handleSubmit} 
+            initialData={editingEntry}
+          />
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <section className="lg:col-span-1 order-2 lg:order-1">
@@ -81,8 +191,8 @@ export default function VocabularyPage() {
                 <div>
                   <h2 className="text-xl font-semibold text-blue-900 mb-2">About This Collection</h2>
                   <p className="text-sm text-gray-600">
-                    This collection features essential French vocabulary carefully selected for language learners. 
-                    From basic expressions to advanced concepts, these words provide a strong foundation for your French learning journey.
+                    This collection features your personal French vocabulary for your language learning journey. 
+                    From basic expressions to advanced concepts, these words provide a strong foundation.
                   </p>
                 </div>
               </div>
@@ -91,26 +201,16 @@ export default function VocabularyPage() {
             <div className="card p-6">
               <h2 className="text-lg font-medium text-gray-900 mb-3">Vocabulary Categories</h2>
               <ul className="space-y-2 text-sm">
-                <li className="flex items-center text-blue-700">
-                  <span className="h-2 w-2 rounded-full bg-blue-600 mr-2"></span>
-                  Common Expressions
-                </li>
-                <li className="flex items-center text-blue-700">
-                  <span className="h-2 w-2 rounded-full bg-blue-600 mr-2"></span>
-                  Food & Dining
-                </li>
-                <li className="flex items-center text-blue-700">
-                  <span className="h-2 w-2 rounded-full bg-blue-600 mr-2"></span>
-                  Travel & Directions
-                </li>
-                <li className="flex items-center text-blue-700">
-                  <span className="h-2 w-2 rounded-full bg-blue-600 mr-2"></span>
-                  Daily Activities
-                </li>
-                <li className="flex items-center text-blue-700">
-                  <span className="h-2 w-2 rounded-full bg-blue-600 mr-2"></span>
-                  Advanced Concepts
-                </li>
+                {categories.length > 0 ? (
+                  categories.map((category) => (
+                    <li key={category} className="flex items-center text-blue-700">
+                      <span className="h-2 w-2 rounded-full bg-blue-600 mr-2"></span>
+                      {category}
+                    </li>
+                  ))
+                ) : (
+                  <li className="text-gray-500 italic">No categories yet</li>
+                )}
               </ul>
             </div>
             
@@ -170,33 +270,35 @@ export default function VocabularyPage() {
               </div>
             </div>
             
-            <div className="overflow-hidden">
+            <div className="p-6">
+              {!isFormVisible && (
+                <button
+                  onClick={handleAddClick}
+                  className="w-full mb-6 py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                >
+                  + Add New Vocabulary
+                </button>
+              )}
+              
               {isLoading ? (
                 <div className="p-12 text-center">
                   <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"></div>
                   <p className="mt-2 text-gray-600">Loading vocabulary...</p>
                 </div>
-              ) : filteredEntries.length === 0 ? (
+              ) : filteredEntries.length > 0 ? (
+                <VocabularyList 
+                  entries={filteredEntries} 
+                  onEdit={handleEdit} 
+                  onDelete={handleDelete} 
+                />
+              ) : (
                 <div className="p-12 text-center">
                   <p className="text-gray-500">
-                    {searchTerm ? 'No matching vocabulary entries found.' : 'No vocabulary entries available.'}
+                    {searchTerm 
+                      ? 'No vocabulary entries match your search.' 
+                      : 'No vocabulary entries yet. Add your first word!'}
                   </p>
-                  {searchTerm && (
-                    <button 
-                      onClick={() => setSearchTerm('')} 
-                      className="mt-2 text-sm text-blue-600 hover:text-blue-800"
-                    >
-                      Clear search
-                    </button>
-                  )}
                 </div>
-              ) : (
-                <VocabularyList
-                  entries={filteredEntries}
-                  onDelete={handleDelete}
-                  onEdit={handleEdit}
-                  readOnly={true}
-                />
               )}
             </div>
           </div>
@@ -205,3 +307,5 @@ export default function VocabularyPage() {
     </div>
   );
 }
+
+export default withAuth(VocabularyPage);
