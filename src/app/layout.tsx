@@ -1,6 +1,7 @@
 import './globals.css'
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import Image from 'next/image'
 import { ReactNode } from 'react'
 import { Montserrat } from 'next/font/google'
 import NextAuthSessionProvider from './providers/SessionProvider'
@@ -16,6 +17,10 @@ const montserrat = Montserrat({
 export const metadata: Metadata = {
   title: 'Mon Chemin Français',
   description: 'Your personalized journey to French fluency',
+  icons: {
+    icon: '/Logo.png',
+    apple: '/Logo.png',
+  },
 }
 
 export default function RootLayout({

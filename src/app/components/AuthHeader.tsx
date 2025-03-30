@@ -5,6 +5,7 @@ import { useSession, signOut } from 'next-auth/react';
 import { Fragment, useState } from 'react';
 import { Menu, Transition } from '@headlessui/react';
 import { UserIcon } from '@heroicons/react/24/outline';
+import Image from 'next/image';
 
 export default function AuthHeader() {
   const { data: session, status } = useSession();
@@ -21,9 +22,13 @@ export default function AuthHeader() {
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
               <Link href="/" className="text-xl font-bold text-blue-900 flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 mr-2 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M3 5a2 2 0 012-2h10a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V5zm11 1H6v8l4-2 4 2V6z" clipRule="evenodd" />
-                </svg>
+                <Image
+                  src="/Logo.png"
+                  alt="Logo"
+                  width={80}
+                  height={80}
+                  className="h-24 w-24 mr-2"
+                />
                 Mon Chemin Français
               </Link>
             </div>
