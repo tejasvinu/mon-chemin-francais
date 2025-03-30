@@ -51,6 +51,6 @@ const FunPhraseSchema = new Schema<IFunPhrase>({
 FunPhraseSchema.index({ type: 1 });
 FunPhraseSchema.index({ phrase: 'text', meaning: 'text' });
 
-const FunPhraseModel = mongoose.models.FunPhrase || mongoose.model<IFunPhrase>('FunPhrase', FunPhraseSchema);
+const FunPhraseModel = mongoose.models.FunPhrase || mongoose.model<IFunPhrase>('FunPhrase', FunPhraseSchema, 'funphrases');
 
 export default FunPhraseModel;

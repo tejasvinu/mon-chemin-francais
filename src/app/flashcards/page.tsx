@@ -1,280 +1,232 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { SparklesIcon, ArrowPathIcon, CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline';
+import { motion, AnimatePresence } from 'framer-motion';
+import withAuth from '../components/withAuth';
 import FlashcardReview from '../components/FlashcardReview';
-import { VocabularyEntry } from '../types';
-import { AcademicCapIcon, ClockIcon, CheckCircleIcon, ArrowPathIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
 
-const calculateNextReview = (srsLevel: number) => {
-  const intervals = [0, 1, 3, 7, 14, 30, 60, 90]; // days for each level
-  const days = intervals[Math.min(srsLevel, intervals.length - 1)];
-  const nextDate = new Date();
-  nextDate.setDate(nextDate.getDate() + days);
-  return nextDate.toISOString();
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
 };
 
-export default function FlashcardsPage() {
-  const [entries, setEntries] = useState<VocabularyEntry[]>([]);
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: { type: 'spring', stiffness: 100 }
+  }
+};
+
+function FlashcardsPage() {
+  const [flashcards, setFlashcards] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [reviewStats, setReviewStats] = useState({
-    dueCount: 0,
-    masteredCount: 0,
-    totalCount: 0,
-    reviewedToday: 0
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [showAnswer, setShowAnswer] = useState(false);
+  const [stats, setStats] = useState({
+    correct: 0,
+    incorrect: 0,
+    remaining: 0
   });
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchEntries();
-  }, []);
-
-  const fetchEntries = async () => {
+  const fetchFlashcards = useCallback(async () => {
     setIsLoading(true);
     try {
       const response = await fetch('/api/vocabulary');
+      if (!response.ok) throw new Error('Failed to fetch flashcards');
       const data = await response.json();
-      setEntries(data.entries);
-      
-      // Calculate stats
-      const today = new Date().setHours(0, 0, 0, 0);
-      const stats = {
-        dueCount: data.entries.filter((e: VocabularyEntry) => 
-          !e.nextReview || new Date(e.nextReview).getTime() <= Date.now()
-        ).length,
-        masteredCount: data.entries.filter((e: VocabularyEntry) => 
-          e.srsLevel && e.srsLevel >= 5
-        ).length,
-        totalCount: data.entries.length,
-        reviewedToday: data.entries.filter((e: VocabularyEntry) => 
-          e.lastReviewed && new Date(e.lastReviewed).setHours(0, 0, 0, 0) === today
-        ).length
-      };
-      setReviewStats(stats);
+      const cards = data.entries || [];
+      setFlashcards(cards);
+      setStats(prev => ({ ...prev, remaining: cards.length }));
     } catch (error) {
-      console.error('Failed to fetch flashcards:', error);
+      console.error('Error fetching flashcards:', error);
     } finally {
       setIsLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    fetchFlashcards();
+  }, [fetchFlashcards]);
+
+  const handleAnswer = (isCorrect: boolean) => {
+    setStats(prev => ({
+      correct: prev.correct + (isCorrect ? 1 : 0),
+      incorrect: prev.incorrect + (isCorrect ? 0 : 1),
+      remaining: prev.remaining - 1
+    }));
+    setShowAnswer(false);
+    setCurrentIndex(prev => prev + 1);
   };
-
-  const handleReviewComplete = async (entryId: string, nextLevel: number, wasCorrect: boolean) => {
-    // In the read-only version, we only update the local state for the current session
-    // but don't make API calls to persist the changes
-    try {
-      const updatedEntries = entries.map(entry => {
-        if (entry.id === entryId) {
-          return {
-            ...entry,
-            srsLevel: nextLevel,
-            nextReview: calculateNextReview(nextLevel),
-            lastReviewed: new Date().toISOString()
-          };
-        }
-        return entry;
-      });
-      
-      setEntries(updatedEntries);
-  
-      // Update local stats for immediate feedback
-      setReviewStats(prev => ({
-        ...prev,
-        reviewedToday: prev.reviewedToday + 1,
-        dueCount: Math.max(0, prev.dueCount - 1),
-        masteredCount: wasCorrect && nextLevel >= 5 ? 
-          prev.masteredCount + 1 : prev.masteredCount
-      }));
-
-      console.log(`Review completed for ${entryId} - next level: ${nextLevel}`);
-    } catch (error) {
-      console.error('Error updating flashcard:', error);
-    }
-  };
-
-  // Filter entries based on selected category (assuming we derive categories from our entries)
-  const categories = Array.from(new Set(entries.map(entry => entry.category || 'Uncategorized')));
-
-  const filteredEntries = selectedCategory 
-    ? entries.filter(entry => entry.category === selectedCategory)
-    : entries;
-
-  const dueEntries = filteredEntries.filter(entry => 
-    !entry.nextReview || new Date(entry.nextReview).getTime() <= Date.now()
-  );
 
   return (
-    <div className="page-container">
-      <header className="mb-8">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl flex items-center">
-              <AcademicCapIcon className="h-8 w-8 text-blue-600 mr-2" />
-              <span>Flashcard Review</span>
-            </h1>
-            <p className="mt-2 text-lg text-gray-600 max-w-3xl">
-              Review your vocabulary with spaced repetition to maximize retention.
-            </p>
-          </div>
-          <div className="mt-4 md:mt-0">
-            <button
-              onClick={fetchEntries}
-              className="btn btn-ghost"
-              aria-label="Refresh flashcards"
-              disabled={isLoading}
-            >
-              <ArrowPathIcon className={`h-5 w-5 mr-1 ${isLoading ? 'animate-spin' : ''}`} />
-              Refresh
-            </button>
-          </div>
-        </div>
-      </header>
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-gray-50 via-white to-indigo-50">
+      {/* Abstract background decoration */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <svg className="absolute w-full h-full" preserveAspectRatio="none">
+          <pattern id="flashcards-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="indigo" strokeWidth="0.5" opacity="0.1" />
+          </pattern>
+          <rect width="100%" height="100%" fill="url(#flashcards-grid)" />
+          <circle cx="10%" cy="10%" r="50" fill="url(#flashcard-gradient)" className="animate-float-slow" />
+          <circle cx="90%" cy="90%" r="70" fill="url(#accent-gradient)" className="animate-float-medium" />
+        </svg>
+        <svg className="absolute w-full h-64 top-0" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="flashcard-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#6366f1" stopOpacity="0.05" />
+              <stop offset="100%" stopColor="#4f46e5" stopOpacity="0.1" />
+            </linearGradient>
+            <linearGradient id="accent-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#8b5cf6" stopOpacity="0.05" />
+              <stop offset="100%" stopColor="#7c3aed" stopOpacity="0.1" />
+            </linearGradient>
+          </defs>
+          <path d="M0,32 C200,100 400,0 600,50 C800,100 1000,0 1200,32 L1200,0 L0,0 Z" fill="url(#flashcard-gradient)" />
+        </svg>
+      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Sidebar with stats */}
-        <div className="lg:col-span-1 order-2 lg:order-1">
-          <div className="sticky top-24 space-y-6">
-            <div className="bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200">
-              <div className="bg-gradient-to-br from-blue-50 to-white p-6 border-b border-gray-200">
-                <h2 className="text-xl font-semibold text-gray-900">Review Statistics</h2>
+      <motion.div
+        className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        {/* Header with glass effect */}
+        <motion.header className="mb-12" variants={itemVariants}>
+          <div className="relative backdrop-blur-sm bg-white/70 rounded-2xl shadow-xl p-8 border border-white/20">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+              <div>
+                <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl flex items-center">
+                  <SparklesIcon className="h-12 w-12 text-indigo-600 mr-4 flex-shrink-0" />
+                  <span>Mémoire Adaptive</span>
+                </h1>
+                <p className="mt-3 text-lg text-gray-600">
+                  Reinforce your learning through our intelligent flashcard system.
+                </p>
               </div>
-              <div className="p-6">
-                <dl className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-1">
-                  <div className="flex justify-between items-center px-4 py-4 bg-blue-50 rounded-lg overflow-hidden">
-                    <dt className="text-sm font-medium text-gray-500 truncate flex items-center">
-                      <ClockIcon className="h-5 w-5 mr-2 text-blue-500" />
-                      Cards Due Today
-                    </dt>
-                    <dd className="ml-2 text-xl font-semibold text-blue-700">{reviewStats.dueCount}</dd>
-                  </div>
-                  
-                  <div className="flex justify-between items-center px-4 py-4 bg-green-50 rounded-lg overflow-hidden">
-                    <dt className="text-sm font-medium text-gray-500 truncate flex items-center">
-                      <CheckCircleIcon className="h-5 w-5 mr-2 text-green-500" />
-                      Mastered Cards
-                    </dt>
-                    <dd className="ml-2 text-xl font-semibold text-green-700">
-                      {reviewStats.masteredCount}
-                    </dd>
-                  </div>
-                  
-                  <div className="flex justify-between items-center px-4 py-4 bg-gray-50 rounded-lg overflow-hidden">
-                    <dt className="text-sm font-medium text-gray-500 truncate">
-                      Total Cards
-                    </dt>
-                    <dd className="ml-2 text-xl font-semibold text-gray-700">
-                      {reviewStats.totalCount}
-                    </dd>
-                  </div>
-                  
-                  <div className="flex justify-between items-center px-4 py-4 bg-gray-50 rounded-lg overflow-hidden">
-                    <dt className="text-sm font-medium text-gray-500 truncate">
-                      Reviewed Today
-                    </dt>
-                    <dd className="ml-2 text-xl font-semibold text-gray-700">
-                      {reviewStats.reviewedToday}
-                    </dd>
-                  </div>
-                </dl>
+              <div className="flex-shrink-0">
+                <button
+                  onClick={fetchFlashcards}
+                  className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-xl text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 shadow-md transition-all duration-300 disabled:opacity-50"
+                  disabled={isLoading}
+                >
+                  <ArrowPathIcon className={`h-5 w-5 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+                  Refresh
+                </button>
+              </div>
+            </div>
+          </div>
+        </motion.header>
 
-                {/* Progress bar */}
-                <div className="mt-6">
-                  <h3 className="text-sm font-medium text-gray-700">Mastery Progress</h3>
-                  <div className="mt-2 relative pt-1">
-                    <div className="overflow-hidden h-2 text-xs flex rounded bg-blue-100">
-                      <div 
-                        style={{ width: `${reviewStats.totalCount ? (reviewStats.masteredCount / reviewStats.totalCount) * 100 : 0}%` }} 
-                        className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-600 transition-all duration-500"
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Sidebar */}
+          <div className="lg:col-span-1">
+            <div className="sticky top-24 space-y-6">
+              {/* Progress Stats */}
+              <motion.div variants={itemVariants} className="backdrop-blur-sm bg-white/80 rounded-2xl shadow-lg border border-white/20 p-8">
+                <h2 className="text-lg font-medium text-gray-900 mb-4">Progress</h2>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <CheckCircleIcon className="h-5 w-5 text-green-500 mr-2" />
+                      <span className="text-sm text-gray-600">Correct</span>
+                    </div>
+                    <span className="text-sm font-medium text-green-600">{stats.correct}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <XCircleIcon className="h-5 w-5 text-red-500 mr-2" />
+                      <span className="text-sm text-gray-600">Incorrect</span>
+                    </div>
+                    <span className="text-sm font-medium text-red-600">{stats.incorrect}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Remaining</span>
+                    <span className="text-sm font-medium text-indigo-600">{stats.remaining}</span>
+                  </div>
+                  <div className="relative pt-4">
+                    <div className="overflow-hidden h-2 text-xs flex rounded bg-indigo-100">
+                      <div
+                        style={{ width: `${((stats.correct + stats.incorrect) / (flashcards.length || 1)) * 100}%` }}
+                        className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-gradient-to-r from-indigo-500 to-purple-500"
                       ></div>
                     </div>
-                    <div className="text-right mt-1">
-                      <span className="text-xs font-semibold inline-block text-blue-600">
-                        {reviewStats.totalCount ? Math.round((reviewStats.masteredCount / reviewStats.totalCount) * 100) : 0}%
-                      </span>
-                    </div>
                   </div>
                 </div>
+              </motion.div>
 
-                {/* Category filter */}
-                {categories.length > 0 && (
-                  <div className="mt-6 border-t border-gray-200 pt-4">
-                    <h3 className="text-sm font-medium text-gray-700 mb-2">Filter by Category</h3>
-                    <div className="space-y-1">
-                      <button
-                        onClick={() => setSelectedCategory(null)}
-                        className={`block w-full text-left px-2 py-1 text-sm rounded ${
-                          selectedCategory === null ? 'bg-blue-100 text-blue-800' : 'text-gray-700 hover:bg-gray-100'
-                        }`}
-                      >
-                        All Categories
-                      </button>
-                      {categories.map(category => (
-                        <button
-                          key={category}
-                          onClick={() => setSelectedCategory(category)}
-                          className={`block w-full text-left px-2 py-1 text-sm rounded ${
-                            selectedCategory === category ? 'bg-blue-100 text-blue-800' : 'text-gray-700 hover:bg-gray-100'
-                          }`}
-                        >
-                          {category}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200">
-              <div className="p-6">
-                <div className="flex items-start space-x-3">
-                  <InformationCircleIcon className="h-6 w-6 text-blue-500 flex-shrink-0" />
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-900">Read-Only Mode</h3>
-                    <p className="mt-1 text-sm text-gray-500">
-                      You're using the demo version of this app. Your review progress will be tracked during this session but won't be saved permanently.
-                    </p>
-                  </div>
+              {/* Study Tips */}
+              <motion.div variants={itemVariants} className="relative overflow-hidden rounded-2xl shadow-lg">
+                <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 to-purple-700"></div>
+                <div className="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
+                <div className="relative p-8">
+                  <h2 className="text-lg font-semibold text-white mb-4">Study Tips</h2>
+                  <ul className="space-y-3">
+                    {[
+                      "Review difficult cards more frequently",
+                      "Say answers out loud",
+                      "Create mental associations",
+                      "Practice in both directions"
+                    ].map((tip, index) => (
+                      <li key={index} className="flex items-start text-white/90">
+                        <svg className="h-5 w-5 text-indigo-300 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span className="text-sm">{tip}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-              </div>
-            </div>
-            
-            {/* Tips */}
-            <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-100">
-              <h3 className="text-sm font-medium text-yellow-800 mb-2">Study Tips</h3>
-              <ul className="mt-2 text-sm text-yellow-700 list-disc list-inside space-y-1">
-                <li>Review cards daily for best results</li>
-                <li>Be honest with your self-assessment</li>
-                <li>Speak the words aloud when practicing</li>
-                <li>Create sentences with new vocabulary</li>
-              </ul>
+              </motion.div>
             </div>
           </div>
-        </div>
 
-        {/* Flashcard review area */}
-        <div className="lg:col-span-2 order-1 lg:order-2">
-          <div className="bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200 min-h-[500px] flex flex-col">
-            <div className="bg-gradient-to-br from-gray-50 to-white p-6 border-b border-gray-200 flex justify-between items-center">
-              <h2 className="text-xl font-semibold text-gray-900">
-                Review Cards {dueEntries.length > 0 && <span className="text-blue-600">({dueEntries.length} due)</span>}
-              </h2>
-            </div>
-            
-            <div className="p-6 flex-grow flex flex-col justify-center">
+          {/* Main content */}
+          <motion.div className="lg:col-span-3" variants={itemVariants}>
+            <div className="backdrop-blur-sm bg-white/80 rounded-2xl shadow-lg border border-white/20 p-8">
               {isLoading ? (
-                <div className="text-center py-12">
-                  <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
-                  <p className="mt-4 text-gray-600">Loading flashcards...</p>
+                <div className="flex justify-center items-center h-96">
+                  <div className="animate-spin rounded-full h-12 w-12 border-4 border-indigo-500 border-t-transparent"></div>
                 </div>
-              ) : (
+              ) : flashcards.length > 0 && currentIndex < flashcards.length ? (
                 <FlashcardReview
-                  entries={dueEntries}
-                  onReviewComplete={handleReviewComplete}
+                  flashcard={flashcards[currentIndex]}
+                  onAnswer={handleAnswer}
+                  showAnswer={showAnswer}
+                  setShowAnswer={setShowAnswer}
                 />
+              ) : (
+                <div className="text-center py-16">
+                  <SparklesIcon className="mx-auto h-12 w-12 text-indigo-400" />
+                  <h3 className="mt-4 text-lg font-medium text-gray-900">Review Complete!</h3>
+                  <p className="mt-2 text-sm text-gray-500">
+                    You've reviewed all the flashcards. Would you like to start over?
+                  </p>
+                  <button
+                    onClick={() => {
+                      setCurrentIndex(0);
+                      setStats({ correct: 0, incorrect: 0, remaining: flashcards.length });
+                    }}
+                    className="mt-6 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  >
+                    Start Over
+                  </button>
+                </div>
               )}
             </div>
-          </div>
+          </motion.div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }
+
+export default withAuth(FlashcardsPage);

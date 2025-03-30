@@ -2,8 +2,16 @@ import './globals.css'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ReactNode } from 'react'
+import { Montserrat } from 'next/font/google'
 import NextAuthSessionProvider from './providers/SessionProvider'
 import AuthHeader from './components/AuthHeader'
+
+// Initialize Montserrat font with subsets and display settings
+const montserrat = Montserrat({ 
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-montserrat'
+})
 
 export const metadata: Metadata = {
   title: 'Mon Chemin Français',
@@ -16,11 +24,11 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
-      <body className="min-h-screen bg-gray-50 flex flex-col">
+    <html lang="en" className={`${montserrat.variable}`}>
+      <body className="min-h-screen bg-gray-50 flex flex-col font-['Montserrat']">
         <NextAuthSessionProvider>
           <AuthHeader />
-          <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+          <main className="flex-grow w-full">
             {children}
           </main>
           <Footer />

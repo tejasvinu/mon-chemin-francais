@@ -1,219 +1,187 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Story } from '../types';
-import { BookOpenIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+import { useState, useEffect, useCallback } from 'react';
+import { BookOpenIcon, ArrowPathIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import withAuth from '../components/withAuth';
 
-const LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
 
-export default function StoriesPage() {
-  const [stories, setStories] = useState<Story[]>([]);
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: { type: 'spring', stiffness: 100 }
+  }
+};
+
+function StoriesPage() {
+  const [stories, setStories] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [activeLevel, setActiveLevel] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
-  useEffect(() => {
-    fetchStories();
-  }, [activeLevel]);
-
-  const fetchStories = async () => {
+  const fetchStories = useCallback(async () => {
     setIsLoading(true);
-    setError(null);
     try {
-      const url = activeLevel 
-        ? `/api/stories?level=${activeLevel}` 
-        : '/api/stories';
-      
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error('Failed to fetch stories');
-      }
+      const response = await fetch('/api/stories');
+      if (!response.ok) throw new Error('Failed to fetch stories');
       const data = await response.json();
       setStories(data.stories || []);
     } catch (error) {
-      console.error('Failed to fetch stories:', error);
-      setError('Failed to load stories. Please try again.');
+      console.error('Error fetching stories:', error);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  // Filter stories based on search term
-  const filteredStories = stories.filter(story => 
-    story.title.toLowerCase().includes(searchTerm.toLowerCase())
+  useEffect(() => {
+    fetchStories();
+  }, [fetchStories]);
+
+  const filteredStories = stories.filter(story =>
+    story.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    story.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Group stories by level for easier display
-  const storiesByLevel = filteredStories.reduce<Record<string, Story[]>>((acc, story) => {
-    if (!acc[story.level]) {
-      acc[story.level] = [];
-    }
-    acc[story.level].push(story);
-    return acc;
-  }, {});
-
   return (
-    <div className="page-container">
-      <header className="mb-8">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl flex items-center">
-              <BookOpenIcon className="h-8 w-8 text-blue-600 mr-2" />
-              <span>Graded Reading</span>
-            </h1>
-            <p className="mt-2 text-lg text-gray-600 max-w-3xl">
-              Improve your French reading comprehension with stories tailored to your level.
-            </p>
-          </div>
-          <div className="mt-4 md:mt-0 flex space-x-2">
-            <button
-              onClick={fetchStories}
-              className="btn btn-ghost"
-              aria-label="Refresh stories"
-              disabled={isLoading}
-            >
-              <ArrowPathIcon className={`h-5 w-5 mr-1 ${isLoading ? 'animate-spin' : ''}`} />
-              Refresh
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-md mb-6">
-          {error}
-          <button onClick={() => setError(null)} className="ml-2 font-medium">Dismiss</button>
-        </div>
-      )}
-
-      {/* Level filters */}
-      <div className="mb-8">
-        <div className="flex flex-wrap gap-2">
-          <button
-            onClick={() => setActiveLevel(null)}
-            className={`px-4 py-2 rounded-full text-sm font-medium ${
-              activeLevel === null
-                ? 'bg-blue-100 text-blue-800'
-                : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-            }`}
-          >
-            All Levels
-          </button>
-          {LEVELS.map(level => (
-            <button
-              key={level}
-              onClick={() => setActiveLevel(level)}
-              className={`px-4 py-2 rounded-full text-sm font-medium ${
-                activeLevel === level
-                  ? 'bg-blue-100 text-blue-800'
-                  : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-              }`}
-            >
-              {level}
-            </button>
-          ))}
-        </div>
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-gray-50 via-white to-purple-50">
+      {/* Abstract background decoration */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <svg className="absolute w-full h-full" preserveAspectRatio="none">
+          <pattern id="stories-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="purple" strokeWidth="0.5" opacity="0.1" />
+          </pattern>
+          <rect width="100%" height="100%" fill="url(#stories-grid)" />
+          <circle cx="10%" cy="10%" r="50" fill="url(#stories-gradient)" className="animate-float-slow" />
+          <circle cx="90%" cy="90%" r="70" fill="url(#accent-gradient)" className="animate-float-medium" />
+        </svg>
+        <svg className="absolute w-full h-64 top-0" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="stories-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#9333ea" stopOpacity="0.05" />
+              <stop offset="100%" stopColor="#7e22ce" stopOpacity="0.1" />
+            </linearGradient>
+            <linearGradient id="accent-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#a855f7" stopOpacity="0.05" />
+              <stop offset="100%" stopColor="#9333ea" stopOpacity="0.1" />
+            </linearGradient>
+          </defs>
+          <path d="M0,32 C200,100 400,0 600,50 C800,100 1000,0 1200,32 L1200,0 L0,0 Z" fill="url(#stories-gradient)" />
+        </svg>
       </div>
 
-      {/* Search */}
-      <div className="mb-8">
-        <div className="relative max-w-md">
-          <input
-            type="text"
-            placeholder="Search stories..."
-            className="form-input pl-10 py-2 w-full"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          </span>
-          {searchTerm && (
-            <button
-              onClick={() => setSearchTerm('')}
-              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
-            >
-              <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Stories list */}
-      {isLoading ? (
-        <div className="p-12 text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"></div>
-          <p className="mt-2 text-gray-600">Loading stories...</p>
-        </div>
-      ) : filteredStories.length === 0 ? (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
-          <p className="text-gray-500">
-            {searchTerm
-              ? 'No stories match your search.'
-              : activeLevel
-                ? `No stories available for level ${activeLevel} yet.`
-                : 'No stories available yet.'}
-          </p>
-        </div>
-      ) : (
-        <>
-          {/* Display by level if not filtered by level already */}
-          {activeLevel === null ? (
-            Object.entries(storiesByLevel).map(([level, levelStories]) => (
-              <div key={level} className="mb-10">
-                <h2 className="text-2xl font-bold text-gray-800 mb-4">Level {level}</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {levelStories.map(story => (
-                    <StoryCard key={story.id} story={story} />
-                  ))}
-                </div>
+      <motion.div
+        className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        {/* Header with glass effect */}
+        <motion.header className="mb-12" variants={itemVariants}>
+          <div className="relative backdrop-blur-sm bg-white/70 rounded-2xl shadow-xl p-8 border border-white/20">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+              <div>
+                <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl flex items-center">
+                  <BookOpenIcon className="h-12 w-12 text-purple-600 mr-4 flex-shrink-0" />
+                  <span>Les Histoires</span>
+                </h1>
+                <p className="mt-3 text-lg text-gray-600">
+                  Immerse yourself in captivating French stories crafted for learners.
+                </p>
               </div>
+              <div className="flex-shrink-0">
+                <button
+                  onClick={fetchStories}
+                  className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-xl text-white bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-700 hover:to-fuchsia-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 shadow-md transition-all duration-300 disabled:opacity-50"
+                  disabled={isLoading}
+                >
+                  <ArrowPathIcon className={`h-5 w-5 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+                  Refresh
+                </button>
+              </div>
+            </div>
+          </div>
+        </motion.header>
+
+        {/* Search Bar */}
+        <motion.div variants={itemVariants} className="mb-8">
+          <div className="relative max-w-md mx-auto">
+            <input
+              type="text"
+              placeholder="Search stories..."
+              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-xl text-sm bg-white/50 backdrop-blur-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition duration-150 ease-in-out"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Stories Grid */}
+        <motion.div
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          variants={containerVariants}
+        >
+          {isLoading ? (
+            <div className="col-span-full flex justify-center items-center h-96">
+              <div className="animate-spin rounded-full h-12 w-12 border-4 border-purple-500 border-t-transparent"></div>
+            </div>
+          ) : filteredStories.length > 0 ? (
+            filteredStories.map((story) => (
+              <motion.div
+                key={story.id}
+                variants={itemVariants}
+                className="group relative"
+              >
+                <Link href={`/stories/${story.id}`}>
+                  <div className="backdrop-blur-sm bg-white/80 rounded-2xl shadow-lg border border-white/20 p-6 hover:shadow-xl transition-all duration-300">
+                    <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-500 to-fuchsia-500 rounded-2xl opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
+                    <div className="relative">
+                      <h3 className="text-xl font-semibold text-gray-900 mb-2">{story.title}</h3>
+                      <p className="text-gray-600 mb-4 line-clamp-3">{story.description}</p>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                            {story.level || 'All Levels'}
+                          </span>
+                          <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                            {story.readTime || '5 min read'}
+                          </span>
+                        </div>
+                        <span className="text-purple-600 group-hover:translate-x-1 transition-transform duration-300">
+                          →
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              </motion.div>
             ))
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredStories.map(story => (
-                <StoryCard key={story.id} story={story} />
-              ))}
+            <div className="col-span-full text-center py-16">
+              <BookOpenIcon className="mx-auto h-12 w-12 text-purple-400" />
+              <h3 className="mt-4 text-lg font-medium text-gray-900">No Stories Found</h3>
+              <p className="mt-2 text-sm text-gray-500">
+                {searchTerm ? 'Try adjusting your search terms.' : 'Check back later for new stories!'}
+              </p>
             </div>
           )}
-        </>
-      )}
+        </motion.div>
+      </motion.div>
     </div>
   );
 }
 
-function StoryCard({ story }: { story: Story }) {
-  return (
-    <Link href={`/stories/${story.id}`} className="group">
-      <div className="card h-full transition-all hover:-translate-y-1 hover:shadow-md">
-        <div className="p-6">
-          <div className="flex justify-between items-start mb-4">
-            <h3 className="text-lg font-semibold text-blue-900 group-hover:text-blue-700">
-              {story.title}
-            </h3>
-            <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
-              {story.level}
-            </span>
-          </div>
-          
-          <p className="text-sm text-gray-600 line-clamp-3 mb-4">
-            {story.content.substring(0, 150)}...
-          </p>
-          
-          <div className="flex items-center text-blue-600 text-sm font-medium group-hover:text-blue-700">
-            Read story
-            <svg className="ml-1 h-4 w-4 group-hover:translate-x-1 transition-transform" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
-            </svg>
-          </div>
-        </div>
-      </div>
-    </Link>
-  );
-}
+export default withAuth(StoriesPage);

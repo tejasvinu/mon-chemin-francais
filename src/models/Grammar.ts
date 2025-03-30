@@ -59,6 +59,6 @@ const GrammarSchema = new Schema<IGrammarNote>({
 GrammarSchema.index({ category: 1 });
 GrammarSchema.index({ title: 'text', explanation: 'text' });
 
-const GrammarModel = mongoose.models.Grammar || mongoose.model<IGrammarNote>('Grammar', GrammarSchema);
+const GrammarModel = mongoose.models.Grammar || mongoose.model<IGrammarNote>('Grammar', GrammarSchema, 'grammars');
 
 export default GrammarModel;

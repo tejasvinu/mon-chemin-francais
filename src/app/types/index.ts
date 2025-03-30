@@ -1,12 +1,14 @@
 export interface VocabularyEntry {
   id: string;
+  _id?: string;  // MongoDB ObjectId as string
   french: string;
   english: string;
   example?: string;
-  createdAt: string;
-  lastReviewed?: string;
-  nextReview?: string;
+  notes?: string;
+  category?: string;
   srsLevel: number; // 0-4, representing spacing intervals
+  nextReview?: Date;
+  createdAt: Date;
 }
 
 export interface GrammarNote {
@@ -51,4 +53,12 @@ export interface FunPhrase {
 export interface SRSInterval {
   level: number;
   days: number;
+}
+
+export interface User {
+  id: string;
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+  role?: string;
 }

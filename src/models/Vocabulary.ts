@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IVocabularyEntry extends Document {
-  userId: mongoose.Schema.Types.ObjectId;
+  userId?: mongoose.Schema.Types.ObjectId;
   french: string;
   english: string;
   example?: string;
@@ -17,7 +17,7 @@ const VocabularySchema = new Schema<IVocabularyEntry>({
   userId: {
     type: Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: false
   },
   french: {
     type: String,
@@ -63,9 +63,9 @@ const VocabularySchema = new Schema<IVocabularyEntry>({
 });
 
 // Create index for faster queries
-VocabularySchema.index({ userId: 1, nextReview: 1 });
-VocabularySchema.index({ userId: 1, category: 1 });
+VocabularySchema.index({ category: 1 });
+VocabularySchema.index({ french: 'text', english: 'text' });
 
-const VocabularyModel = mongoose.models.Vocabulary || mongoose.model<IVocabularyEntry>('Vocabulary', VocabularySchema);
+const VocabularyModel = mongoose.models.Vocabulary || mongoose.model<IVocabularyEntry>('Vocabulary', VocabularySchema, 'vocabularies');
 
 export default VocabularyModel;

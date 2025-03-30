@@ -1,219 +1,242 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { GrammarNote } from '../types';
-import { BookOpenIcon, AcademicCapIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+import { useState, useEffect, useCallback } from 'react';
+import { AcademicCapIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+import { motion, AnimatePresence } from 'framer-motion';
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: { type: 'spring', stiffness: 100 }
+  }
+};
 
 export default function GrammarPage() {
-  const [notes, setNotes] = useState<GrammarNote[]>([]);
+  const [notes, setNotes] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
 
-  useEffect(() => {
-    fetchNotes();
-  }, []);
-
-  const fetchNotes = async () => {
+  const fetchGrammar = useCallback(async () => {
     setIsLoading(true);
     try {
       const response = await fetch('/api/grammar');
+      if (!response.ok) throw new Error('Failed to fetch grammar notes');
       const data = await response.json();
-      setNotes(data.notes);
+      setNotes(data.notes || []);
     } catch (error) {
-      console.error('Failed to fetch grammar notes:', error);
+      console.error('Error fetching grammar notes:', error);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  // Get unique categories
-  const categories = Array.from(new Set(notes.map(note => note.category)));
-  
-  const filteredNotes = notes.filter(note => {
-    const matchesSearch = searchTerm === '' || 
+  useEffect(() => {
+    fetchGrammar();
+  }, [fetchGrammar]);
+
+  const categories = [...new Set(notes.map(note => note.category))].filter(Boolean);
+  const filteredNotes = notes.filter(note => 
+    (!selectedCategory || note.category === selectedCategory) &&
+    (!searchTerm || 
       note.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      note.explanation.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesCategory = selectedCategory === null || note.category === selectedCategory;
-    
-    return matchesSearch && matchesCategory;
-  });
+      note.explanation.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
 
   return (
-    <div className="page-container">
-      <header className="mb-8">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl flex items-center">
-              <AcademicCapIcon className="h-8 w-8 text-blue-600 mr-2" />
-              <span>French Grammar</span>
-            </h1>
-            <p className="mt-2 text-lg text-gray-600 max-w-3xl">
-              Master French grammar with clear explanations and practical examples.
-            </p>
-          </div>
-          <div className="mt-4 md:mt-0">
-            <button 
-              onClick={fetchNotes} 
-              className="btn btn-ghost"
-              aria-label="Refresh grammar notes"
-              disabled={isLoading}
-            >
-              <ArrowPathIcon className={`h-5 w-5 mr-1 ${isLoading ? 'animate-spin' : ''}`} />
-              Refresh
-            </button>
-          </div>
-        </div>
-      </header>
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-gray-50 via-white to-red-50">
+      {/* Abstract background decoration */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <svg className="absolute w-full h-full" preserveAspectRatio="none">
+          <pattern id="grammar-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="red" strokeWidth="0.5" opacity="0.1" />
+          </pattern>
+          <rect width="100%" height="100%" fill="url(#grammar-grid)" />
+          <circle cx="10%" cy="10%" r="50" fill="url(#grammar-gradient)" className="animate-float-slow" />
+          <circle cx="90%" cy="90%" r="70" fill="url(#accent-gradient)" className="animate-float-medium" />
+        </svg>
+        <svg className="absolute w-full h-64 top-0" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="grammar-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#dc2626" stopOpacity="0.05" />
+              <stop offset="100%" stopColor="#991b1b" stopOpacity="0.1" />
+            </linearGradient>
+            <linearGradient id="accent-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#4f46e5" stopOpacity="0.05" />
+              <stop offset="100%" stopColor="#3730a3" stopOpacity="0.1" />
+            </linearGradient>
+          </defs>
+          <path d="M0,32 C200,100 400,0 600,50 C800,100 1000,0 1200,32 L1200,0 L0,0 Z" fill="url(#grammar-gradient)" />
+        </svg>
+      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        {/* Sidebar */}
-        <div className="lg:col-span-1">
-          <div className="sticky top-24 space-y-6">
-            <div className="card p-6">
-              <h2 className="text-lg font-medium text-gray-900 mb-4">Categories</h2>
-              <div className="space-y-2">
+      <motion.div
+        className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        {/* Header with glass effect */}
+        <motion.header className="mb-12" variants={itemVariants}>
+          <div className="relative backdrop-blur-sm bg-white/70 rounded-2xl shadow-xl p-8 border border-white/20">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+              <div>
+                <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl flex items-center">
+                  <AcademicCapIcon className="h-12 w-12 text-red-600 mr-4 flex-shrink-0" />
+                  <span>La Structure</span>
+                </h1>
+                <p className="mt-3 text-lg text-gray-600">
+                  Master the architectural elegance of French grammar through visual frameworks.
+                </p>
+              </div>
+              <div className="flex-shrink-0">
                 <button
-                  onClick={() => setSelectedCategory(null)}
-                  className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
-                    selectedCategory === null 
-                      ? 'bg-blue-100 text-blue-800' 
-                      : 'text-gray-700 hover:bg-gray-100'
-                  }`}
+                  onClick={fetchGrammar}
+                  className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-xl text-white bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 shadow-md transition-all duration-300 disabled:opacity-50"
+                  disabled={isLoading}
                 >
-                  All Categories
+                  <ArrowPathIcon className={`h-5 w-5 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+                  Refresh
                 </button>
-                {categories.map(category => (
+              </div>
+            </div>
+          </div>
+        </motion.header>
+
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Sidebar */}
+          <div className="lg:col-span-1">
+            <div className="sticky top-24 space-y-6">
+              <motion.div variants={itemVariants} className="backdrop-blur-sm bg-white/80 rounded-2xl shadow-lg border border-white/20 p-8">
+                <h2 className="text-lg font-medium text-gray-900 mb-4">Categories</h2>
+                <div className="space-y-2">
                   <button
-                    key={category}
-                    onClick={() => setSelectedCategory(category)}
-                    className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
-                      selectedCategory === category 
-                        ? 'bg-blue-100 text-blue-800' 
+                    onClick={() => setSelectedCategory(null)}
+                    className={`w-full text-left px-3 py-2 rounded-xl text-sm transition-colors ${
+                      selectedCategory === null 
+                        ? 'bg-red-100 text-red-800' 
                         : 'text-gray-700 hover:bg-gray-100'
                     }`}
                   >
-                    {category}
+                    All Categories
                   </button>
-                ))}
+                  {categories.map(category => (
+                    <button
+                      key={category}
+                      onClick={() => setSelectedCategory(category)}
+                      className={`w-full text-left px-3 py-2 rounded-xl text-sm transition-colors ${
+                        selectedCategory === category 
+                          ? 'bg-red-100 text-red-800' 
+                          : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                    >
+                      {category}
+                    </button>
+                  ))}
+                </div>
+              </motion.div>
+
+              <motion.div variants={itemVariants} className="backdrop-blur-sm bg-white/80 rounded-2xl shadow-lg border border-white/20 p-8 bg-gradient-to-br from-red-50 to-white">
+                <h2 className="text-lg font-medium text-red-900 mb-3">Learning Tips</h2>
+                <ul className="space-y-3 text-sm text-gray-700">
+                  <li className="flex items-start">
+                    <svg className="h-5 w-5 text-red-500 mr-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>Focus on one grammar concept at a time</span>
+                  </li>
+                  <li className="flex items-start">
+                    <svg className="h-5 w-5 text-red-500 mr-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    </svg>
+                    <span>Write your own examples to reinforce learning</span>
+                  </li>
+                  <li className="flex items-start">
+                    <svg className="h-5 w-5 text-red-500 mr-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span>Practice grammar rules daily for better retention</span>
+                  </li>
+                </ul>
+              </motion.div>
+            </div>
+          </div>
+
+          {/* Main content */}
+          <motion.div className="lg:col-span-3" variants={itemVariants}>
+            <div className="backdrop-blur-sm bg-white/80 rounded-2xl shadow-lg border border-white/20 overflow-hidden">
+              <div className="p-6 border-b border-gray-200/50">
+                <div className="relative max-w-md">
+                  <input
+                    type="text"
+                    placeholder="Search grammar notes..."
+                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-xl text-sm bg-white/50 backdrop-blur-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition duration-150 ease-in-out"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-6">
+                {isLoading ? (
+                  <div className="flex justify-center items-center h-64">
+                    <div className="animate-spin rounded-full h-12 w-12 border-4 border-red-500 border-t-transparent"></div>
+                  </div>
+                ) : (
+                  <div className="grid gap-6">
+                    {filteredNotes.map((note) => (
+                      <motion.div
+                        key={note.id}
+                        className="backdrop-blur-sm bg-white/90 rounded-xl shadow-md border border-gray-200/50 p-6 hover:shadow-lg transition-shadow duration-300"
+                        variants={itemVariants}
+                      >
+                        <div className="flex items-start space-x-3">
+                          <div className="flex-1">
+                            <h3 className="text-lg font-semibold text-gray-900">{note.title}</h3>
+                          </div>
+                        </div>
+                        
+                        <p className="text-gray-700 mt-4">{note.explanation}</p>
+                        
+                        {note.examples.length > 0 && (
+                          <div className="mt-4 bg-gradient-to-r from-red-50 to-white p-4 rounded-lg border border-red-100">
+                            <h4 className="text-sm font-medium text-red-800 mb-2">Examples:</h4>
+                            <div className="space-y-3">
+                              {note.examples.map((example, index) => (
+                                <div key={`${note.id}-example-${index}`} className="text-sm">
+                                  <p className="font-medium text-red-700">{example.french}</p>
+                                  <p className="text-gray-600 italic">{example.english}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
-
-            <div className="card p-6 bg-gradient-to-br from-blue-50 to-white">
-              <h2 className="text-lg font-medium text-blue-900 mb-3">Learning Tips</h2>
-              <ul className="space-y-3 text-sm text-gray-700">
-                <li className="flex items-start">
-                  <svg className="h-5 w-5 text-blue-500 mr-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <span>Focus on one grammar concept at a time</span>
-                </li>
-                <li className="flex items-start">
-                  <svg className="h-5 w-5 text-blue-500 mr-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                  </svg>
-                  <span>Write your own examples to reinforce learning</span>
-                </li>
-                <li className="flex items-start">
-                  <svg className="h-5 w-5 text-blue-500 mr-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  <span>Practice grammar rules daily for better retention</span>
-                </li>
-              </ul>
-            </div>
-          </div>
+          </motion.div>
         </div>
-
-        {/* Main content */}
-        <div className="lg:col-span-3">
-          <div className="mb-6">
-            <div className="relative max-w-md">
-              <input
-                type="text"
-                placeholder="Search grammar notes..."
-                className="form-input pl-10 py-2 w-full"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-              <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </span>
-              {searchTerm && (
-                <button 
-                  onClick={() => setSearchTerm('')}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
-                >
-                  <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              )}
-            </div>
-          </div>
-
-          {isLoading ? (
-            <div className="p-12 text-center">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"></div>
-              <p className="mt-2 text-gray-600">Loading grammar notes...</p>
-            </div>
-          ) : filteredNotes.length === 0 ? (
-            <div className="p-12 text-center bg-white rounded-lg shadow-sm">
-              <p className="text-gray-500">
-                {searchTerm || selectedCategory ? 'No matching grammar notes found.' : 'No grammar notes available.'}
-              </p>
-              {(searchTerm || selectedCategory) && (
-                <button 
-                  onClick={() => {
-                    setSearchTerm('');
-                    setSelectedCategory(null);
-                  }} 
-                  className="mt-2 text-sm text-blue-600 hover:text-blue-800"
-                >
-                  Clear filters
-                </button>
-              )}
-            </div>
-          ) : (
-            <div className="grid gap-6 sm:grid-cols-1 lg:grid-cols-2">
-              {filteredNotes.map((note) => (
-                <div
-                  key={note.id}
-                  className="grammar-card"
-                >
-                  <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <span className="inline-block px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800 mb-2">
-                        {note.category}
-                      </span>
-                      <h3 className="text-lg font-semibold text-gray-900">{note.title}</h3>
-                    </div>
-                  </div>
-                  
-                  <p className="text-gray-700 mb-4">{note.explanation}</p>
-                  
-                  {note.examples.length > 0 && (
-                    <div className="bg-gray-50 p-3 rounded-md border border-gray-200">
-                      <h4 className="text-sm font-medium text-gray-700 mb-2">Examples:</h4>
-                      <div className="space-y-3">
-                        {note.examples.map((example, index) => (
-                          <div key={index} className="text-sm">
-                            <p className="font-medium text-blue-700">{example.french}</p>
-                            <p className="text-gray-600 italic">{example.english}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

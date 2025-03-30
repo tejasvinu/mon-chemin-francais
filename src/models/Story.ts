@@ -63,6 +63,6 @@ const StorySchema = new Schema<IStory>({
 StorySchema.index({ level: 1 });
 StorySchema.index({ title: 1 });
 
-const StoryModel = mongoose.models.Story || mongoose.model<IStory>('Story', StorySchema);
+const StoryModel = mongoose.models.Story || mongoose.model<IStory>('Story', StorySchema, 'stories');
 
 export default StoryModel;
