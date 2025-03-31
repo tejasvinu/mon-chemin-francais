@@ -1,16 +1,14 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
 import StoryModel from '@/models/Story';
 import mongoose from 'mongoose';
 
-// Get a specific story by ID
 export async function GET(
-  request: NextRequest,
-  { params }: { params: { storyId: string } }
+  request: Request,
+  context: { params: { storyId: string } }
 ) {
   try {
-    // In Next.js App Router, params is now stable and doesn't need to be awaited
-    const { storyId } = params;
+    const storyId = context.params.storyId;
     
     // Handle missing storyId with clear error message
     if (!storyId || storyId === 'undefined') {
