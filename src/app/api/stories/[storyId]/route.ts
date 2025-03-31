@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
-import StoryModel, { IStory } from '@/models/Story';
 import mongoose from 'mongoose';
+import { initializeModels } from '@/lib/models';
 
 export async function GET(
   _request: NextRequest,
-  context: { params: { storyId: string } }
+  context: { params: Promise<{ storyId: string }> | { storyId: string } }
 ) {
   try {
-    const storyId = context.params.storyId;
+    // Properly await params if they are a Promise
+    const params = context.params instanceof Promise ? await context.params : context.params;
+    const { storyId } = params;
 
     // Handle missing storyId with clear error message
     if (!storyId || storyId === 'undefined') {
@@ -23,19 +25,29 @@ export async function GET(
     }
 
     await connectToDatabase();
+    
+    // Initialize all models first to ensure they're registered
+    const { StoryModel, VocabularyModel } = initializeModels();
 
-    // Using a safer type assertion approach
-    const storyDoc = await StoryModel.findById(storyId).populate('vocabularyHighlights').lean();
+    // First fetch the story
+    const storyDoc = await StoryModel.findById(storyId).lean();
 
     if (!storyDoc) {
       console.error('Story not found with ID:', storyId);
       return NextResponse.json({ error: 'Story not found' }, { status: 404 });
     }
 
+    // If the story has vocabulary highlights, fetch them separately
+    let vocabularyItems = [];
+    if (storyDoc.vocabularyHighlights && storyDoc.vocabularyHighlights.length > 0) {
+      vocabularyItems = await VocabularyModel.find({
+        _id: { $in: storyDoc.vocabularyHighlights }
+      }).lean();
+    }
+
     // First cast to unknown to bypass TypeScript's type checking constraints
     const story = storyDoc as unknown as {
       _id: mongoose.Types.ObjectId;
-      vocabularyHighlights?: Array<{ _id: mongoose.Types.ObjectId | string }>;
       [key: string]: any;
     };
 
@@ -43,9 +55,9 @@ export async function GET(
     const storyWithId = {
       ...story,
       id: story._id.toString(),
-      vocabularyHighlights: story.vocabularyHighlights?.map(vocab => ({
-        ...vocab,
-        id: vocab._id.toString()
+      vocabulary: vocabularyItems.map(item => ({
+        ...item,
+        id: item._id.toString()
       }))
     };
 

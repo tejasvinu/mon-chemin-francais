@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { ArrowLeftIcon, BookOpenIcon, SpeakerWaveIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
+import { useState, useEffect, use } from 'react';
+import { ArrowLeftIcon, BookOpenIcon, SpeakerWaveIcon, DocumentTextIcon, AcademicCapIcon, BookmarkIcon } from '@heroicons/react/24/outline';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import withAuth from '../../components/withAuth';
@@ -25,16 +25,28 @@ const itemVariants = {
   }
 };
 
-function StoryPage({ params }: { params: { storyId: string } }) {
+function StoryPage({ params }: { params: { storyId: string } | Promise<{ storyId: string }> }) {
+  // Unwrap params if it's a Promise using React's use() hook
+  const resolvedParams = params instanceof Promise ? use(params) : params;
+  const { storyId } = resolvedParams;
+  
   const [story, setStory] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showTranslation, setShowTranslation] = useState(false);
+  const [selectedAnswers, setSelectedAnswers] = useState<{[key: string]: number}>({});
+  const [showAnswers, setShowAnswers] = useState(false);
 
   useEffect(() => {
     async function fetchStory() {
+      if (!storyId || storyId === 'undefined') {
+        console.error('Missing or invalid story ID:', storyId);
+        setIsLoading(false);
+        return;
+      }
+      
       setIsLoading(true);
       try {
-        const response = await fetch(`/api/stories/${params.storyId}`);
+        const response = await fetch(`/api/stories/${storyId}`);
         if (!response.ok) throw new Error('Failed to fetch story');
         const data = await response.json();
         setStory(data.story);
@@ -45,10 +57,50 @@ function StoryPage({ params }: { params: { storyId: string } }) {
       }
     }
 
-    if (params.storyId) {
-      fetchStory();
+    fetchStory();
+  }, [storyId]);
+
+  // Function to parse content into paragraphs
+  const getParagraphs = () => {
+    if (!story) return [];
+    
+    // If paragraphs are already structured
+    if (story.paragraphs && Array.isArray(story.paragraphs)) {
+      return story.paragraphs;
     }
-  }, [params.storyId]);
+    
+    // If content is available but not structured into paragraphs
+    if (story.content) {
+      // Split by newlines
+      const contentLines = story.content.split('\n');
+      const translationLines = story.translation ? story.translation.split('\n') : [];
+      
+      // Map each line to a paragraph object
+      const contentParagraphs = contentLines.map((text, i) => ({
+        french: text.trim(),
+        english: translationLines[i] ? translationLines[i].trim() : ''
+      })).filter(p => p.french); // Remove empty paragraphs
+      
+      return contentParagraphs;
+    }
+    
+    return [];
+  };
+
+  // Handle selecting an answer in the comprehension questions
+  const handleSelectAnswer = (questionIndex: number, answerIndex: number) => {
+    setSelectedAnswers({
+      ...selectedAnswers,
+      [questionIndex]: answerIndex
+    });
+  };
+
+  // Check if answer is correct
+  const isCorrectAnswer = (questionIndex: number, answerIndex: number) => {
+    if (!showAnswers || !story?.comprehensionQuestions) return false;
+    const question = story.comprehensionQuestions[questionIndex];
+    return question.correctAnswerIndex === answerIndex;
+  };
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-gray-50 via-white to-purple-50">
@@ -136,9 +188,9 @@ function StoryPage({ params }: { params: { storyId: string } }) {
             <motion.div variants={itemVariants}>
               <div className="backdrop-blur-sm bg-white/80 rounded-2xl shadow-lg border border-white/20 p-8">
                 <div className="prose prose-lg max-w-none">
-                  {story.paragraphs.map((paragraph: any, index: number) => (
+                  {getParagraphs().map((paragraph: any, index: number) => (
                     <motion.div
-                      key={`paragraph-${story.id}-${index}`}
+                      key={`paragraph-${story.id || index}-${index}`}
                       className="mb-8"
                     >
                       <div className="relative group">
@@ -150,7 +202,7 @@ function StoryPage({ params }: { params: { storyId: string } }) {
                           <SpeakerWaveIcon className="h-5 w-5 text-purple-500 hover:text-purple-600" />
                         </button>
                       </div>
-                      {showTranslation && (
+                      {showTranslation && paragraph.english && (
                         <p className="text-gray-600 italic">{paragraph.english}</p>
                       )}
                     </motion.div>
@@ -159,31 +211,87 @@ function StoryPage({ params }: { params: { storyId: string } }) {
               </div>
             </motion.div>
 
-            {/* Vocabulary Section */}
-            {story.vocabulary && story.vocabulary.length > 0 && (
+            {/* Vocabulary Section - Compact format */}
+            {story.vocabulary && Array.isArray(story.vocabulary) && story.vocabulary.length > 0 && (
               <motion.div variants={itemVariants} className="mt-12">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">Key Vocabulary</h2>
+                <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+                  <BookmarkIcon className="h-6 w-6 mr-2 text-purple-600" />
+                  Key Vocabulary
+                </h2>
                 <div className="backdrop-blur-sm bg-white/80 rounded-2xl shadow-lg border border-white/20 p-6">
-                  <div className="grid gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {story.vocabulary.map((item: any, index: number) => (
                       <motion.div
-                        key={`vocab-${story.id}-${index}`}
-                        className="p-4 rounded-lg bg-gradient-to-r from-purple-50 to-white border border-purple-100"
+                        key={`vocab-${story.id || index}-${index}`}
+                        className="p-3 rounded-lg border border-purple-100 bg-white/70"
+                        whileHover={{ scale: 1.02 }}
+                        transition={{ type: "spring", stiffness: 300 }}
                       >
-                        <div className="flex justify-between items-start">
-                          <div>
+                        <div className="flex justify-between items-center">
+                          <div className="flex-1">
                             <p className="font-medium text-purple-900">{item.french}</p>
-                            <p className="text-gray-600">{item.english}</p>
+                            <p className="text-sm text-gray-600">{item.english}</p>
+                            {item.example && (
+                              <p className="text-xs text-gray-500 mt-1 italic">"{item.example}"</p>
+                            )}
                           </div>
                           <button
-                            className="p-2 text-purple-500 hover:text-purple-600 transition-colors"
+                            className="p-1.5 text-purple-500 hover:text-purple-600 transition-colors rounded-full hover:bg-purple-50"
                             title="Listen"
                           >
-                            <SpeakerWaveIcon className="h-5 w-5" />
+                            <SpeakerWaveIcon className="h-4 w-4" />
                           </button>
                         </div>
                       </motion.div>
                     ))}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Comprehension Questions */}
+            {story.comprehensionQuestions && story.comprehensionQuestions.length > 0 && (
+              <motion.div variants={itemVariants} className="mt-12">
+                <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+                  <AcademicCapIcon className="h-6 w-6 mr-2 text-purple-600" />
+                  Comprehension Questions
+                </h2>
+                <div className="backdrop-blur-sm bg-white/80 rounded-2xl shadow-lg border border-white/20 p-6">
+                  <div className="space-y-8">
+                    {story.comprehensionQuestions.map((question: any, qIndex: number) => (
+                      <div key={`question-${qIndex}`} className="bg-white/50 rounded-lg p-5 shadow-sm">
+                        <h3 className="text-lg font-medium mb-4">{qIndex + 1}. {question.question}</h3>
+                        <div className="space-y-3">
+                          {question.options.map((option: string, oIndex: number) => (
+                            <div 
+                              key={`option-${qIndex}-${oIndex}`}
+                              className={`rounded-lg border p-3 cursor-pointer transition-colors ${
+                                selectedAnswers[qIndex] === oIndex 
+                                  ? 'border-purple-500 bg-purple-50' 
+                                  : 'border-gray-200 hover:border-purple-200 hover:bg-purple-50/30'
+                              } ${
+                                showAnswers && isCorrectAnswer(qIndex, oIndex)
+                                  ? 'bg-green-50 border-green-500'
+                                  : showAnswers && selectedAnswers[qIndex] === oIndex && !isCorrectAnswer(qIndex, oIndex)
+                                    ? 'bg-red-50 border-red-500'
+                                    : ''
+                              }`}
+                              onClick={() => handleSelectAnswer(qIndex, oIndex)}
+                            >
+                              {option}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-8 flex justify-end">
+                    <button
+                      onClick={() => setShowAnswers(true)}
+                      className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                    >
+                      Check Answers
+                    </button>
                   </div>
                 </div>
               </motion.div>
