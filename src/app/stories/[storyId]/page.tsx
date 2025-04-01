@@ -25,10 +25,9 @@ const itemVariants = {
   }
 };
 
-function StoryPage({ params }: { params: { storyId: string } | Promise<{ storyId: string }> }) {
-  // Unwrap params if it's a Promise using React's use() hook
-  const resolvedParams = params instanceof Promise ? use(params) : params;
-  const { storyId } = resolvedParams;
+function StoryPage({ params }: { params: { storyId: string } }) {
+  // Remove the Promise handling since params is now always a plain object
+  const { storyId } = params;
   
   const [story, setStory] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -76,17 +75,17 @@ function StoryPage({ params }: { params: { storyId: string } | Promise<{ storyId
       const translationLines = story.translation ? story.translation.split('\n') : [];
       
       // Map each line to a paragraph object
-      const contentParagraphs = contentLines.map((text, i) => ({
+      const contentParagraphs = contentLines.map((text: string, i: number) => ({
         french: text.trim(),
         english: translationLines[i] ? translationLines[i].trim() : ''
-      })).filter(p => p.french); // Remove empty paragraphs
+      })).filter((p: { french: string; english: string }) => p.french); // Remove empty paragraphs
       
       return contentParagraphs;
     }
     
     return [];
   };
-
+  
   // Handle selecting an answer in the comprehension questions
   const handleSelectAnswer = (questionIndex: number, answerIndex: number) => {
     setSelectedAnswers({
@@ -320,4 +319,10 @@ function StoryPage({ params }: { params: { storyId: string } | Promise<{ storyId
   );
 }
 
-export default withAuth(StoryPage);
+// Change the export to properly type the component
+const StoryPageWithAuth = withAuth(StoryPage);
+
+// Export as a page component that receives params
+export default function Page({ params }: { params: { storyId: string } }) {
+  return <StoryPageWithAuth params={params} />;
+}

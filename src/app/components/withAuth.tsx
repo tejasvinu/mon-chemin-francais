@@ -3,9 +3,11 @@
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { ComponentType } from 'react';
 
-export default function withAuth(Component: React.ComponentType) {
-  return function ProtectedRoute(props: any) {
+// Make withAuth a generic function that preserves the component's props type
+export default function withAuth<P extends object>(Component: ComponentType<P>) {
+  return function ProtectedRoute(props: P) {
     const { data: session, status } = useSession();
     const router = useRouter();
 
