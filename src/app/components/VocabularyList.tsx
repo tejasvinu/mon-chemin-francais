@@ -1,8 +1,9 @@
-// src/components/VocabularyList.tsx (or adjust path as needed)
+// src/components/VocabularyList.tsx
 'use client';
 
 import { motion } from 'framer-motion';
-import { PencilSquareIcon, TrashIcon, SpeakerWaveIcon } from '@heroicons/react/24/outline';
+import { PencilSquareIcon, TrashIcon, SpeakerWaveIcon, StopIcon } from '@heroicons/react/24/outline';
+import { useTTS } from './TTSProvider';
 
 interface VocabularyListProps {
   entries: any[];
@@ -31,6 +32,17 @@ const itemVariants = {
 };
 
 export default function VocabularyList({ entries, onEdit, onDelete, readOnly = false }: VocabularyListProps) {
+  const { speak, isLoading, isSpeaking, stop } = useTTS();
+
+  const handleSpeak = (text: string, isEnglish: boolean, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isSpeaking) {
+      stop();
+    } else {
+      speak(text, isEnglish);
+    }
+  };
+
   return (
     <motion.div
       className="divide-y divide-gray-200/50"
@@ -50,19 +62,42 @@ export default function VocabularyList({ entries, onEdit, onDelete, readOnly = f
                 <div className="flex items-center gap-4 mb-2">
                   <h3 className="text-lg font-semibold text-gray-900">{entry.french}</h3>
                   <button
-                    className="p-1.5 text-blue-500 hover:text-blue-600 transition-colors opacity-0 group-hover:opacity-100"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      // Add audio playback logic here
-                    }}
+                    className="p-1.5 text-blue-500 hover:text-blue-600 transition-colors opacity-0 group-hover:opacity-100 disabled:opacity-50"
+                    onClick={(e) => handleSpeak(entry.french, false, e)}
+                    disabled={isLoading}
+                    title={isSpeaking ? "Stop" : "Listen in French"}
                   >
-                    <SpeakerWaveIcon className="h-5 w-5" />
+                    {isSpeaking ? (
+                      <StopIcon className="h-6 w-6" />
+                    ) : (
+                      <SpeakerWaveIcon className="h-6 w-6" />
+                    )}
                   </button>
                 </div>
-                <p className="text-gray-600">{entry.english}</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-gray-600">{entry.english}</p>
+                  <button
+                    className="p-1.5 text-blue-500 hover:text-blue-600 transition-colors opacity-0 group-hover:opacity-100 disabled:opacity-50"
+                    onClick={(e) => handleSpeak(entry.english, true, e)}
+                    disabled={isLoading}
+                    title="Listen in English"
+                  >
+                    <SpeakerWaveIcon className="h-4 w-4" />
+                  </button>
+                </div>
                 {entry.example && (
                   <div className="mt-3 bg-gradient-to-r from-blue-50 to-white p-3 rounded-lg border border-blue-100">
-                    <p className="text-sm text-blue-900">{entry.example}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm text-blue-900">{entry.example}</p>
+                      <button
+                        className="p-1 text-blue-500 hover:text-blue-600 transition-colors opacity-0 group-hover:opacity-100 disabled:opacity-50"
+                        onClick={(e) => handleSpeak(entry.example, false, e)}
+                        disabled={isLoading}
+                        title="Listen to example"
+                      >
+                        <SpeakerWaveIcon className="h-4 w-4" />
+                      </button>
+                    </div>
                   </div>
                 )}
                 {entry.notes && (

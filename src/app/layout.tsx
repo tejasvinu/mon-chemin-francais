@@ -6,6 +6,7 @@ import { ReactNode } from 'react'
 import { Montserrat } from 'next/font/google'
 import NextAuthSessionProvider from './providers/SessionProvider'
 import AuthHeader from './components/AuthHeader'
+import { TTSProvider } from './components/TTSProvider'
 
 // Initialize Montserrat font with subsets and display settings
 const montserrat = Montserrat({ 
@@ -29,23 +30,25 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`${montserrat.variable}`}>
-      <body className="min-h-screen bg-gray-50 flex flex-col font-['Montserrat']">
+    <html lang="en">
+      <body className={montserrat.className}>
         <NextAuthSessionProvider>
-          <AuthHeader />
-          <main className="flex-grow w-full">
-            {children}
-          </main>
-          <Footer />
+          <TTSProvider>
+            <div className="min-h-screen flex flex-col">
+              <AuthHeader />
+              <main className="flex-grow">
+                {children}
+              </main>
+              <Footer />
+            </div>
+          </TTSProvider>
         </NextAuthSessionProvider>
       </body>
     </html>
-  )
+  );
 }
 
 function NavLink({ href, children }: { href: string, children: ReactNode }) {
-  // Assuming NavLink is used within AuthHeader or similar, 
-  // add appropriate styling. Example:
   return (
     <Link
       href={href}
@@ -56,7 +59,6 @@ function NavLink({ href, children }: { href: string, children: ReactNode }) {
   );
 }
 
-// Basic Footer component (can be moved to its own file)
 function Footer() {
   return (
     <footer className="bg-white border-t border-gray-200 mt-auto">

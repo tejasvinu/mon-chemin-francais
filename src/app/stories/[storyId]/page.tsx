@@ -1,10 +1,37 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
-import { ArrowLeftIcon, BookOpenIcon, SpeakerWaveIcon, DocumentTextIcon, AcademicCapIcon, BookmarkIcon } from '@heroicons/react/24/outline';
+import { useState, useEffect } from 'react';
+import { ArrowLeftIcon, BookOpenIcon, SpeakerWaveIcon, StopIcon, DocumentTextIcon, AcademicCapIcon, BookmarkIcon } from '@heroicons/react/24/outline';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import withAuth from '../../components/withAuth';
+import { useTTS } from '../../components/TTSProvider';
+
+// Add useStory hook
+function useStory(storyId: string) {
+  const [story, setStory] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    async function fetchStory() {
+      try {
+        const response = await fetch(`/api/stories/${storyId}`);
+        if (!response.ok) throw new Error('Failed to fetch story');
+        const data = await response.json();
+        setStory(data.story);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Error fetching story');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchStory();
+  }, [storyId]);
+
+  return { story, isLoading, error };
+}
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -26,38 +53,20 @@ const itemVariants = {
 };
 
 function StoryPage({ params }: { params: { storyId: string } }) {
-  // Remove the Promise handling since params is now always a plain object
-  const { storyId } = params;
-  
-  const [story, setStory] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { story, isLoading, error } = useStory(params.storyId);
   const [showTranslation, setShowTranslation] = useState(false);
-  const [selectedAnswers, setSelectedAnswers] = useState<{[key: string]: number}>({});
+  const [selectedAnswers, setSelectedAnswers] = useState<Record<number, number>>({});
   const [showAnswers, setShowAnswers] = useState(false);
+  const { speak, isLoading: ttsLoading, isSpeaking, stop } = useTTS();
 
-  useEffect(() => {
-    async function fetchStory() {
-      if (!storyId || storyId === 'undefined') {
-        console.error('Missing or invalid story ID:', storyId);
-        setIsLoading(false);
-        return;
-      }
-      
-      setIsLoading(true);
-      try {
-        const response = await fetch(`/api/stories/${storyId}`);
-        if (!response.ok) throw new Error('Failed to fetch story');
-        const data = await response.json();
-        setStory(data.story);
-      } catch (error) {
-        console.error('Error fetching story:', error);
-      } finally {
-        setIsLoading(false);
-      }
+  const handleSpeak = (text: string, isEnglish: boolean, e: React.MouseEvent) => {
+    e.preventDefault();
+    if (isSpeaking) {
+      stop();
+    } else {
+      speak(text, isEnglish);
     }
-
-    fetchStory();
-  }, [storyId]);
+  };
 
   // Function to parse content into paragraphs
   const getParagraphs = () => {
@@ -195,14 +204,34 @@ function StoryPage({ params }: { params: { storyId: string } }) {
                       <div className="relative group">
                         <p className="text-gray-900 leading-relaxed mb-2">{paragraph.french}</p>
                         <button
-                          className="absolute top-0 right-0 p-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                          title="Listen"
+                          className="absolute top-0 right-0 p-2 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
+                          onClick={(e) => handleSpeak(paragraph.french, false, e)}
+                          disabled={ttsLoading}
+                          title={isSpeaking ? "Stop" : "Listen in French"}
                         >
-                          <SpeakerWaveIcon className="h-5 w-5 text-purple-500 hover:text-purple-600" />
+                          {isSpeaking ? (
+                            <StopIcon className="h-5 w-5 text-purple-500 hover:text-purple-600" />
+                          ) : (
+                            <SpeakerWaveIcon className="h-5 w-5 text-purple-500 hover:text-purple-600" />
+                          )}
                         </button>
                       </div>
                       {showTranslation && paragraph.english && (
-                        <p className="text-gray-600 italic">{paragraph.english}</p>
+                        <div className="relative group">
+                          <p className="text-gray-600 italic">{paragraph.english}</p>
+                          <button
+                            className="absolute top-0 right-0 p-2 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
+                            onClick={(e) => handleSpeak(paragraph.english, true, e)}
+                            disabled={ttsLoading}
+                            title={isSpeaking ? "Stop" : "Listen in English"}
+                          >
+                            {isSpeaking ? (
+                              <StopIcon className="h-5 w-5 text-purple-500 hover:text-purple-600" />
+                            ) : (
+                              <SpeakerWaveIcon className="h-5 w-5 text-purple-500 hover:text-purple-600" />
+                            )}
+                          </button>
+                        </div>
                       )}
                     </motion.div>
                   ))}
@@ -210,7 +239,7 @@ function StoryPage({ params }: { params: { storyId: string } }) {
               </div>
             </motion.div>
 
-            {/* Vocabulary Section - Compact format */}
+            {/* Vocabulary Section */}
             {story.vocabulary && Array.isArray(story.vocabulary) && story.vocabulary.length > 0 && (
               <motion.div variants={itemVariants} className="mt-12">
                 <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
@@ -228,18 +257,54 @@ function StoryPage({ params }: { params: { storyId: string } }) {
                       >
                         <div className="flex justify-between items-center">
                           <div className="flex-1">
-                            <p className="font-medium text-purple-900">{item.french}</p>
-                            <p className="text-sm text-gray-600">{item.english}</p>
+                            <div className="flex items-center gap-2">
+                              <p className="font-medium text-purple-900">{item.french}</p>
+                              <button
+                                className="p-1 text-purple-500 hover:text-purple-600 transition-colors disabled:opacity-50"
+                                onClick={(e) => handleSpeak(item.french, false, e)}
+                                disabled={ttsLoading}
+                                title={isSpeaking ? "Stop" : "Listen in French"}
+                              >
+                                {isSpeaking ? (
+                                  <StopIcon className="h-4 w-4" />
+                                ) : (
+                                  <SpeakerWaveIcon className="h-4 w-4" />
+                                )}
+                              </button>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <p className="text-sm text-gray-600">{item.english}</p>
+                              <button
+                                className="p-1 text-purple-500 hover:text-purple-600 transition-colors disabled:opacity-50"
+                                onClick={(e) => handleSpeak(item.english, true, e)}
+                                disabled={ttsLoading}
+                                title={isSpeaking ? "Stop" : "Listen in English"}
+                              >
+                                {isSpeaking ? (
+                                  <StopIcon className="h-3 w-3" />
+                                ) : (
+                                  <SpeakerWaveIcon className="h-3 w-3" />
+                                )}
+                              </button>
+                            </div>
                             {item.example && (
-                              <p className="text-xs text-gray-500 mt-1 italic">"{item.example}"</p>
+                              <div className="flex items-center gap-2">
+                                <p className="text-xs text-gray-500 mt-1 italic">"{item.example}"</p>
+                                <button
+                                  className="p-1 text-purple-500 hover:text-purple-600 transition-colors disabled:opacity-50"
+                                  onClick={(e) => handleSpeak(item.example, false, e)}
+                                  disabled={ttsLoading}
+                                  title={isSpeaking ? "Stop" : "Listen to example"}
+                                >
+                                  {isSpeaking ? (
+                                    <StopIcon className="h-3 w-3" />
+                                  ) : (
+                                    <SpeakerWaveIcon className="h-3 w-3" />
+                                  )}
+                                </button>
+                              </div>
                             )}
                           </div>
-                          <button
-                            className="p-1.5 text-purple-500 hover:text-purple-600 transition-colors rounded-full hover:bg-purple-50"
-                            title="Listen"
-                          >
-                            <SpeakerWaveIcon className="h-4 w-4" />
-                          </button>
                         </div>
                       </motion.div>
                     ))}

@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { SpeakerWaveIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { SpeakerWaveIcon, StopIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { useTTS } from './TTSProvider';
 
 interface FlashcardReviewProps {
   flashcard: any;
@@ -18,6 +19,16 @@ export default function FlashcardReview({
   setShowAnswer
 }: FlashcardReviewProps) {
   const [isFlipping, setIsFlipping] = useState(false);
+  const { speak, isLoading, isSpeaking, stop } = useTTS();
+
+  const handleSpeak = (text: string, isEnglish: boolean, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isSpeaking) {
+      stop();
+    } else {
+      speak(text, isEnglish);
+    }
+  };
 
   const handleFlip = () => {
     if (!showAnswer) {
@@ -38,13 +49,16 @@ export default function FlashcardReview({
           <div className="h-full backdrop-blur-sm bg-white/80 rounded-2xl shadow-lg border border-white/20 p-8 flex flex-col items-center justify-center text-center transform transition-transform duration-300 hover:scale-[1.02]">
             <div className="absolute top-4 right-4">
               <button
-                className="p-2 text-indigo-500 hover:text-indigo-600 transition-colors"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  // Add audio playback logic here
-                }}
+                className="p-2 text-indigo-500 hover:text-indigo-600 transition-colors disabled:opacity-50"
+                onClick={(e) => handleSpeak(flashcard.french, false, e)}
+                disabled={isLoading}
+                title={isSpeaking ? "Stop" : "Listen in French"}
               >
-                <SpeakerWaveIcon className="h-6 w-6" />
+                {isSpeaking ? (
+                  <StopIcon className="h-6 w-6" />
+                ) : (
+                  <SpeakerWaveIcon className="h-6 w-6" />
+                )}
               </button>
             </div>
             <h2 className="text-3xl font-bold text-gray-900 mb-4">{flashcard.french}</h2>
@@ -56,12 +70,40 @@ export default function FlashcardReview({
         <div className={`absolute inset-0 ${showAnswer ? 'block' : 'hidden'}`}>
           <div className="h-full backdrop-blur-sm bg-gradient-to-br from-indigo-50 via-white to-purple-50 rounded-2xl shadow-lg border border-white/20 p-8 flex flex-col items-center justify-between text-center">
             <div className="flex-grow flex flex-col items-center justify-center">
-              <p className="text-gray-600 mb-2">Translation</p>
+              <div className="flex items-center gap-2 mb-2">
+                <p className="text-gray-600">Translation</p>
+                <button
+                  className="p-1.5 text-indigo-500 hover:text-indigo-600 transition-colors disabled:opacity-50"
+                  onClick={(e) => handleSpeak(flashcard.english, true, e)}
+                  disabled={isLoading}
+                  title={isSpeaking ? "Stop" : "Listen in English"}
+                >
+                  {isSpeaking ? (
+                    <StopIcon className="h-5 w-5" />
+                  ) : (
+                    <SpeakerWaveIcon className="h-5 w-5" />
+                  )}
+                </button>
+              </div>
               <h3 className="text-2xl font-bold text-gray-900">{flashcard.english}</h3>
               {flashcard.example && (
                 <div className="mt-6">
                   <p className="text-sm text-gray-600 mb-1">Example:</p>
-                  <p className="text-indigo-700 font-medium">{flashcard.example}</p>
+                  <div className="flex items-center justify-center gap-2">
+                    <p className="text-indigo-700 font-medium">{flashcard.example}</p>
+                    <button
+                      className="p-1.5 text-indigo-500 hover:text-indigo-600 transition-colors disabled:opacity-50"
+                      onClick={(e) => handleSpeak(flashcard.example, false, e)}
+                      disabled={isLoading}
+                      title={isSpeaking ? "Stop" : "Listen to example"}
+                    >
+                      {isSpeaking ? (
+                        <StopIcon className="h-5 w-5" />
+                      ) : (
+                        <SpeakerWaveIcon className="h-5 w-5" />
+                      )}
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -103,5 +145,5 @@ export default function FlashcardReview({
         </motion.div>
       )}
     </div>
-  )
+  );
 }
