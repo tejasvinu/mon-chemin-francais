@@ -73,11 +73,11 @@ body {
   }
   
   .form-input {
-    @apply block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500;
+    @apply block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 py-3 px-4 text-base;
   }
   
   .btn {
-    @apply inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500;
+    @apply inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500;
   }
   
   .btn-primary {
@@ -93,7 +93,7 @@ body {
   }
   
   .flashcard {
-    @apply bg-white rounded-xl shadow-md border border-gray-200 transition-all duration-300 cursor-pointer;
+    @apply bg-white rounded-xl shadow-md border border-gray-200 transition-all duration-300 cursor-pointer min-h-[120px];
   }
   
   .flashcard-front {

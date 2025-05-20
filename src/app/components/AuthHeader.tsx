@@ -25,8 +25,9 @@ export default function AuthHeader() {
                 <Image
                   src="/Logo.png"
                   alt="Logo"
-                  width={80}
-                  height={80}
+                  width={96}
+                  height={96}
+                  priority
                   className="h-24 w-24 mr-2"
                 />
                 Mon Chemin Français

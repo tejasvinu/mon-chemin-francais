@@ -1,0 +1,23 @@
+{
+  "name": "Mon Chemin Français",
+  "short_name": "FrenchApp",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#007bff",
+  "description": "Your personalized journey to French fluency.",
+  "icons": [
+    {
+      "src": "/Logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/Logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -22,6 +22,8 @@ export const metadata: Metadata = {
     icon: '/Logo.png',
     apple: '/Logo.png',
   },
+  viewport: 'width=device-width, initial-scale=1, shrink-to-fit=no, maximum-scale=1',
+  manifest: "/manifest.json",
 }
 
 export default function RootLayout({
@@ -52,9 +54,9 @@ function NavLink({ href, children }: { href: string, children: ReactNode }) {
   return (
     <Link
       href={href}
-      className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
+      className="text-base font-medium text-gray-700 hover:text-blue-600 transition-colors"
     >
-      {children}
+      <span className="inline-block py-2 px-2">{children}</span>
     </Link>
   );
 }
