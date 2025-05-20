@@ -52,71 +52,80 @@ function FunStuffPage() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-gray-50 via-white to-amber-50">
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-gray-50 via-white to-amber-50 p-4 sm:p-6 lg:p-8">
       {/* Abstract background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <svg className="absolute w-full h-full" preserveAspectRatio="none">
+          <defs>
+            <radialGradient id="fun-bg-grad-1" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+              <stop offset="0%" stopColor="rgba(249, 115, 22, 0.05)" /> {/* orange-500 */}
+              <stop offset="100%" stopColor="rgba(249, 115, 22, 0)" />
+            </radialGradient>
+            <radialGradient id="fun-bg-grad-2" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+              <stop offset="0%" stopColor="rgba(251, 191, 36, 0.05)" /> {/* amber-400 */}
+              <stop offset="100%" stopColor="rgba(251, 191, 36, 0)" />
+            </radialGradient>
+          </defs>
           <pattern id="fun-grid" width="40" height="40" patternUnits="userSpaceOnUse">
-            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="orange" strokeWidth="0.5" opacity="0.1" />
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(249, 115, 22, 0.1)" strokeWidth="0.5" />
           </pattern>
           <rect width="100%" height="100%" fill="url(#fun-grid)" />
-          <circle cx="10%" cy="10%" r="50" fill="url(#fun-gradient)" className="animate-float-slow" />
-          <circle cx="90%" cy="90%" r="70" fill="url(#accent-gradient)" className="animate-float-medium" />
-        </svg>
-        <svg className="absolute w-full h-64 top-0" preserveAspectRatio="none">
-          <defs>
-            <linearGradient id="fun-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#f97316" stopOpacity="0.05" />
-              <stop offset="100%" stopColor="#ea580c" stopOpacity="0.1" />
-            </linearGradient>
-            <linearGradient id="accent-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#fbbf24" stopOpacity="0.05" />
-              <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.1" />
-            </linearGradient>
-          </defs>
-          <path d="M0,32 C200,100 400,0 600,50 C800,100 1000,0 1200,32 L1200,0 L0,0 Z" fill="url(#fun-gradient)" />
+          <circle cx="25%" cy="75%" r="200" fill="url(#fun-bg-grad-1)" className="animate-float-slow opacity-70" />
+          <circle cx="75%" cy="25%" r="250" fill="url(#fun-bg-grad-2)" className="animate-float-medium opacity-60" />
         </svg>
       </div>
 
       <motion.div
-        className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12"
+        className="relative max-w-7xl mx-auto z-10"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
-        {/* Header with glass effect */}
-        <motion.header className="mb-12" variants={itemVariants}>
-          <div className="relative backdrop-blur-sm bg-white/70 rounded-2xl shadow-xl p-8 border border-white/20">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-              <div>
-                <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl flex items-center">
-                  <FaceSmileIcon className="h-12 w-12 text-orange-600 mr-4 flex-shrink-0" />
-                  <span>Fun Stuff</span>
+        {/* Page Header */}
+        <motion.div variants={itemVariants} className="mb-6 sm:mb-8 lg:mb-12">
+          <div className="relative backdrop-blur-md bg-white/70 rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8 border border-white/30">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="min-w-0">
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-gray-900 flex items-center">
+                  <FaceSmileIcon className="h-7 w-7 sm:h-8 lg:h-10 text-orange-600 mr-2.5 sm:mr-3 lg:mr-4 flex-shrink-0" />
+                  <span className="truncate">Fun Stuff</span>
                 </h1>
-                <p className="mt-3 text-lg text-gray-600">
+                <p className="mt-1.5 sm:mt-2 text-sm sm:text-base lg:text-lg text-gray-600">
                   Discover playful French expressions and cultural tidbits.
                 </p>
               </div>
-              <div className="flex-shrink-0">
+              <div className="flex-shrink-0 mt-3 sm:mt-0">
                 <button
                   onClick={fetchFunStuff}
-                  className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-xl text-white bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 shadow-md transition-all duration-300 disabled:opacity-50"
+                  className="w-full sm:w-auto inline-flex items-center justify-center px-5 py-2.5 sm:px-6 sm:py-3 border border-transparent text-sm sm:text-base font-medium rounded-lg sm:rounded-xl text-white bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 shadow-md transition-all duration-150 disabled:opacity-60"
                   disabled={isLoading}
                 >
                   <ArrowPathIcon className={`h-5 w-5 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-                  Refresh
+                  {isLoading ? 'Loading...' : 'Refresh Phrases'}
                 </button>
               </div>
             </div>
           </div>
-        </motion.header>
+        </motion.div>
 
         {/* Fun Phrases Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <motion.div
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
+          variants={containerVariants} // Stagger children in grid
+        >
           {isLoading ? (
-            <div className="col-span-full flex justify-center items-center h-96">
-              <div className="animate-spin rounded-full h-12 w-12 border-4 border-orange-500 border-t-transparent"></div>
-            </div>
+            Array.from({ length: 6 }).map((_, index) => (
+              <motion.div 
+                key={`skeleton-fun-${index}`} 
+                variants={itemVariants} // Each skeleton item also animates in
+                className="backdrop-blur-sm bg-white/60 rounded-xl sm:rounded-2xl shadow-lg border border-white/30 p-5 sm:p-6 animate-pulse h-48 sm:h-56"
+              >
+                <div className="h-5 bg-gray-200 rounded w-3/4 mb-3"></div>
+                <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
+                <div className="h-4 bg-gray-200 rounded w-5/6 mb-4"></div>
+                <div className="h-10 bg-gray-100 rounded-lg"></div>
+              </motion.div>
+            ))
           ) : funPhrases.length > 0 ? (
             funPhrases.map((phrase: any) => (
               <motion.div
@@ -124,43 +133,39 @@ function FunStuffPage() {
                 variants={cardVariants}
                 initial="initial"
                 whileHover="hover"
-                className="backdrop-blur-sm bg-white/80 rounded-2xl shadow-lg border border-white/20 overflow-hidden"
+                className="group backdrop-blur-sm bg-white/80 rounded-xl sm:rounded-2xl shadow-lg border border-white/30 overflow-hidden flex flex-col h-full hover:shadow-xl transition-shadow duration-300"
               >
-                <div className="relative p-6">
-                  <div className="absolute -inset-0.5 bg-gradient-to-r from-orange-500 to-amber-500 rounded-2xl opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
-                  <div className="relative">
-                    <p className="text-lg font-semibold text-orange-900 mb-2">{phrase.phrase}</p>
-                    <p className="text-gray-600 mb-4">{phrase.meaning}</p>
+                {/* Optional: subtle gradient overlay on hover */}
+                <div className="absolute -inset-px bg-gradient-to-r from-orange-400 to-amber-400 rounded-xl sm:rounded-2xl opacity-0 group-hover:opacity-10 transition-opacity duration-300 pointer-events-none"></div>
+                
+                <div className="relative p-5 sm:p-6 flex-grow flex flex-col justify-between">
+                  <div>
+                    <p className="text-base sm:text-lg font-semibold text-orange-800 group-hover:text-orange-700 transition-colors mb-1.5 sm:mb-2">{phrase.phrase}</p>
+                    <p className="text-sm sm:text-base text-gray-600 mb-2 sm:mb-3">{phrase.meaning}</p>
                     {phrase.literalTranslation && (
-                      <motion.div
-                        key={`literal-${phrase.id || phrase.phrase}`}
-                        className="mb-4 text-sm text-gray-500 italic"
-                      >
-                        Literal: {phrase.literalTranslation}
-                      </motion.div>
-                    )}
-                    {phrase.context && (
-                      <motion.div
-                        key={`context-${phrase.id || phrase.phrase}`}
-                        className="bg-gradient-to-r from-amber-50 to-white p-3 rounded-lg border border-amber-100"
-                      >
-                        <p className="text-sm text-amber-800">{phrase.context}</p>
-                      </motion.div>
+                      <p className="text-xs sm:text-sm text-gray-500 italic mb-2 sm:mb-3">
+                        Literal: "{phrase.literalTranslation}"
+                      </p>
                     )}
                   </div>
+                  {phrase.context && (
+                    <div className="mt-auto pt-2 sm:pt-3 border-t border-orange-100/70">
+                      <p className="text-2xs sm:text-xs text-orange-700 bg-orange-50/80 p-2 sm:p-2.5 rounded-md">Context: {phrase.context}</p>
+                    </div>
+                  )}
                 </div>
               </motion.div>
             ))
           ) : (
-            <div className="col-span-full text-center py-16 backdrop-blur-sm bg-white/80 rounded-2xl shadow-lg border border-white/20">
-              <FaceSmileIcon className="mx-auto h-12 w-12 text-orange-400" />
-              <h3 className="mt-4 text-lg font-medium text-gray-900">No Fun Phrases Found</h3>
-              <p className="mt-2 text-sm text-gray-500">
-                Check back later for some fun French expressions!
+            <div className="col-span-full text-center py-12 sm:py-16 backdrop-blur-sm bg-white/70 rounded-xl sm:rounded-2xl shadow-lg border border-white/30">
+              <FaceSmileIcon className="mx-auto h-10 w-10 sm:h-12 sm:w-12 text-orange-400" />
+              <h3 className="mt-3 sm:mt-4 text-base sm:text-lg font-medium text-gray-900">No Fun Phrases Found</h3>
+              <p className="mt-1.5 sm:mt-2 text-xs sm:text-sm text-gray-500">
+                Looks like the fun is still brewing! Check back later.
               </p>
             </div>
           )}
-        </div>
+        </motion.div>
       </motion.div>
     </div>
   );

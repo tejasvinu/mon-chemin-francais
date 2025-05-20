@@ -60,38 +60,38 @@ export default function Home() {
         </div>
 
         {/* Content container */}
-        <div className={`relative max-w-7xl mx-auto px-6 py-32 text-center z-10 transition-all duration-1000 ease-out transform ${animateHero ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'}`}>
+        <div className={`relative max-w-7xl mx-auto px-4 sm:px-6 py-24 sm:py-32 text-center z-10 transition-all duration-1000 ease-out transform ${animateHero ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'}`}>
           <div className="relative inline-block">
             <span className="absolute -inset-1 rounded-lg bg-white/30 blur-xl"></span>
-            <h1 className="relative text-5xl md:text-7xl lg:text-8xl font-extrabold tracking-tight text-white">
+            <h1 className="relative text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-extrabold tracking-tight text-white">
               <span className="text-blue-200">Mon</span> Chemin <span className="text-red-300">Français</span>
             </h1>
           </div>
           
           {/* Abstract text underline */}
-          <div className="relative h-2 w-48 md:w-80 mx-auto my-8">
+          <div className="relative h-2 w-32 sm:w-48 md:w-80 mx-auto my-6 sm:my-8">
             <div className="absolute inset-0 bg-blue-300 rounded-full transform -skew-x-12"></div>
-            <div className="absolute inset-0 left-24 bg-white rounded-full transform skew-x-12"></div>
-            <div className="absolute inset-0 left-48 bg-red-300 rounded-full transform -skew-x-12"></div>
+            <div className="absolute inset-0 left-16 sm:left-24 bg-white rounded-full transform skew-x-12"></div>
+            <div className="absolute inset-0 left-32 sm:left-48 bg-red-300 rounded-full transform -skew-x-12"></div>
           </div>
           
-          <p className="mt-8 text-xl leading-8 text-blue-100 max-w-3xl mx-auto font-light">
+          <p className="mt-6 sm:mt-8 text-lg sm:text-xl leading-7 sm:leading-8 text-blue-100 max-w-sm sm:max-w-md md:max-w-3xl mx-auto font-light">
             <span className="font-semibold text-white">Discover</span> your unique journey through the language of 
             <span className="italic font-medium"> Liberté, Égalité, Fraternité</span>. 
             A learning experience as <span className="font-semibold text-white">distinctive</span> as you are.
           </p>
           
-          <div className="mt-14 flex items-center justify-center gap-x-8 flex-wrap">
+          <div className="mt-10 sm:mt-14 flex flex-col sm:flex-row items-center justify-center gap-y-6 gap-x-8">
             <Link
               href="/vocabulary"
-              className="group relative px-8 py-4 rounded-none overflow-hidden border-2 border-white text-white font-medium transition-all hover:text-blue-900 hover:border-transparent"
+              className="group relative w-full sm:w-auto px-8 py-4 rounded-none overflow-hidden border-2 border-white text-white font-medium transition-all hover:text-blue-900 hover:border-transparent"
             >
               <span className="absolute inset-0 bg-white origin-left transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
               <span className="relative">Commencer Votre Voyage</span>
             </Link>
             <Link
               href="/flashcards"
-              className="group relative px-5 py-3 text-white hover:text-blue-200 transition-colors duration-300 flex items-center"
+              className="group relative w-full sm:w-auto justify-center px-5 py-3 text-white hover:text-blue-200 transition-colors duration-300 flex items-center"
             >
               <span>Discover Flashcards</span>
               <div className="ml-2 group-hover:translate-x-2 transition-transform duration-300">
@@ -131,39 +131,39 @@ export default function Home() {
         </div>
 
         <div className="max-w-7xl mx-auto px-6 lg:px-8 relative">
-          <div className="text-center mb-24">
-            <div className="inline-flex items-center bg-blue-100 rounded-full px-4 py-1.5 text-sm font-semibold text-blue-800 mb-6">
+          <div className="text-center mb-16 sm:mb-24">
+            <div className="inline-flex items-center bg-blue-100 rounded-full px-4 py-1.5 text-sm font-semibold text-blue-800 mb-4 sm:mb-6">
               <StarIcon className="h-4 w-4 mr-2" />
               <span>Learning Modules</span>
             </div>
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900">
               Artfully Crafted <span className="text-blue-700">Learning Experience</span>
             </h2>
-            <p className="mt-6 text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+            <p className="mt-4 sm:mt-6 text-lg sm:text-xl text-gray-600 max-w-md sm:max-w-xl md:max-w-3xl mx-auto leading-relaxed">
               Navigate through our elegantly designed learning modules, each one a stepping stone on your path to French fluency.
             </p>
           </div>
 
           {/* Feature Cards - Abstract design */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-16">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-12 sm:gap-y-16">
             {/* Vocabulary Module */}
             <div className="group relative">
               <div className="absolute -inset-2 bg-gradient-to-r from-blue-100 to-blue-50 rounded-lg blur opacity-75 group-hover:opacity-100 transition duration-500"></div>
-              <div className="relative p-8 bg-white rounded-lg backdrop-blur-sm shadow-md overflow-hidden">
-                <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-blue-600 to-blue-400 flex items-center justify-center transform -rotate-6 group-hover:rotate-0 transition-transform duration-300">
-                  <BookOpenIcon className="h-8 w-8 text-white" />
+              <div className="relative p-6 sm:p-8 bg-white rounded-lg backdrop-blur-sm shadow-md overflow-hidden">
+                <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-xl bg-gradient-to-br from-blue-600 to-blue-400 flex items-center justify-center transform -rotate-6 group-hover:rotate-0 transition-transform duration-300">
+                  <BookOpenIcon className="h-7 w-7 sm:h-8 sm:w-8 text-white" />
                 </div>
                 
-                <h3 className="mt-8 text-2xl font-bold text-gray-900 tracking-tight">Le Lexique</h3>
-                <p className="mt-4 text-gray-600 leading-relaxed">
+                <h3 className="mt-6 sm:mt-8 text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">Le Lexique</h3>
+                <p className="mt-3 sm:mt-4 text-base sm:text-gray-600 leading-relaxed">
                   A curated collection of essential French vocabulary, arranged in thematic constellations for intuitive acquisition.
                 </p>
                 
-                <div className="mt-6 h-0.5 w-full bg-gradient-to-r from-blue-100 to-transparent"></div>
+                <div className="mt-5 sm:mt-6 h-0.5 w-full bg-gradient-to-r from-blue-100 to-transparent"></div>
                 
                 <Link
                   href="/vocabulary"
-                  className="mt-6 inline-flex items-center text-blue-700 font-medium group-hover:text-blue-500 transition-colors"
+                  className="mt-5 sm:mt-6 inline-flex items-center text-blue-700 font-medium group-hover:text-blue-500 transition-colors"
                 >
                   <span>Explore Words</span>
                   <span className="relative ml-2 overflow-hidden inline-block h-5 w-5">
@@ -175,23 +175,23 @@ export default function Home() {
             </div>
 
             {/* Flashcards Module */}
-            <div className="group relative mt-10 md:mt-16">
+            <div className="group relative mt-0 md:mt-16">
               <div className="absolute -inset-2 bg-gradient-to-r from-indigo-100 to-purple-50 rounded-lg blur opacity-75 group-hover:opacity-100 transition duration-500"></div>
-              <div className="relative p-8 bg-white rounded-lg backdrop-blur-sm shadow-md overflow-hidden">
-                <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-500 flex items-center justify-center transform rotate-6 group-hover:rotate-0 transition-transform duration-300">
-                  <SparklesIcon className="h-8 w-8 text-white" />
+              <div className="relative p-6 sm:p-8 bg-white rounded-lg backdrop-blur-sm shadow-md overflow-hidden">
+                <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-500 flex items-center justify-center transform rotate-6 group-hover:rotate-0 transition-transform duration-300">
+                  <SparklesIcon className="h-7 w-7 sm:h-8 sm:w-8 text-white" />
                 </div>
                 
-                <h3 className="mt-8 text-2xl font-bold text-gray-900 tracking-tight">Mémoire Adaptive</h3>
-                <p className="mt-4 text-gray-600 leading-relaxed">
+                <h3 className="mt-6 sm:mt-8 text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">Mémoire Adaptive</h3>
+                <p className="mt-3 sm:mt-4 text-base sm:text-gray-600 leading-relaxed">
                   Intelligent flashcard system that adapts to your learning rhythm, reinforcing neural pathways through algorithmic repetition.
                 </p>
                 
-                <div className="mt-6 h-0.5 w-full bg-gradient-to-r from-indigo-100 to-transparent"></div>
+                <div className="mt-5 sm:mt-6 h-0.5 w-full bg-gradient-to-r from-indigo-100 to-transparent"></div>
                 
                 <Link
                   href="/flashcards"
-                  className="mt-6 inline-flex items-center text-indigo-700 font-medium group-hover:text-indigo-500 transition-colors"
+                  className="mt-5 sm:mt-6 inline-flex items-center text-indigo-700 font-medium group-hover:text-indigo-500 transition-colors"
                 >
                   <span>Train Memory</span>
                   <span className="relative ml-2 overflow-hidden inline-block h-5 w-5">
@@ -205,21 +205,21 @@ export default function Home() {
             {/* Grammar Module */}
             <div className="group relative">
               <div className="absolute -inset-2 bg-gradient-to-r from-red-50 to-amber-50 rounded-lg blur opacity-75 group-hover:opacity-100 transition duration-500"></div>
-              <div className="relative p-8 bg-white rounded-lg backdrop-blur-sm shadow-md overflow-hidden">
-                <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-red-500 to-amber-400 flex items-center justify-center transform -rotate-12 group-hover:rotate-0 transition-transform duration-300">
-                  <AcademicCapIcon className="h-8 w-8 text-white" />
+              <div className="relative p-6 sm:p-8 bg-white rounded-lg backdrop-blur-sm shadow-md overflow-hidden">
+                <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-xl bg-gradient-to-br from-red-500 to-amber-400 flex items-center justify-center transform -rotate-12 group-hover:rotate-0 transition-transform duration-300">
+                  <AcademicCapIcon className="h-7 w-7 sm:h-8 sm:w-8 text-white" />
                 </div>
                 
-                <h3 className="mt-8 text-2xl font-bold text-gray-900 tracking-tight">La Structure</h3>
-                <p className="mt-4 text-gray-600 leading-relaxed">
+                <h3 className="mt-6 sm:mt-8 text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">La Structure</h3>
+                <p className="mt-3 sm:mt-4 text-base sm:text-gray-600 leading-relaxed">
                   Decode the architectural elegance of French grammar through visual frameworks and conceptual patterns.
                 </p>
                 
-                <div className="mt-6 h-0.5 w-full bg-gradient-to-r from-red-100 to-transparent"></div>
+                <div className="mt-5 sm:mt-6 h-0.5 w-full bg-gradient-to-r from-red-100 to-transparent"></div>
                 
                 <Link
                   href="/grammar"
-                  className="mt-6 inline-flex items-center text-red-600 font-medium group-hover:text-red-500 transition-colors"
+                  className="mt-5 sm:mt-6 inline-flex items-center text-red-600 font-medium group-hover:text-red-500 transition-colors"
                 >
                   <span>Master Form</span>
                   <span className="relative ml-2 overflow-hidden inline-block h-5 w-5">
@@ -244,26 +244,26 @@ export default function Home() {
           </svg>
         </div>
 
-        <div className="relative max-w-7xl mx-auto py-20 md:py-28 lg:py-36 px-6 lg:px-8 lg:flex lg:items-center lg:justify-between z-10">
-          <div className="max-w-2xl">
-            <h2 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+        <div className="relative max-w-7xl mx-auto py-16 sm:py-20 md:py-28 lg:py-36 px-4 sm:px-6 lg:px-8 lg:flex lg:items-center lg:justify-between z-10">
+          <div className="max-w-xl text-center lg:text-left">
+            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
               <span className="block">Ready for linguistic transformation?</span>
               <span className="block text-blue-200 mt-1 italic">C'est le moment de commencer.</span>
             </h2>
-            <p className="mt-6 text-lg text-blue-100 max-w-xl">
+            <p className="mt-4 sm:mt-6 text-md sm:text-lg text-blue-100 max-w-lg mx-auto lg:mx-0">
               Embark on a journey designed not just to teach French, but to cultivate a profound connection with its cultural essence and poetic structure.
             </p>
           </div>
           
-          <div className="mt-10 lg:mt-0 lg:flex-shrink-0">
+          <div className="mt-8 sm:mt-10 lg:mt-0 lg:flex-shrink-0 flex justify-center">
             <Link
               href="/vocabulary"
-              className="group relative inline-flex"
+              className="group relative inline-flex w-full sm:w-auto justify-center"
             >
               <div className="absolute -inset-0.5 bg-gradient-to-r from-amber-500 to-pink-500 rounded-lg blur opacity-70 group-hover:opacity-100 transition duration-500"></div>
               <button
                 type="button"
-                className="relative inline-flex items-center justify-center rounded-md border border-transparent bg-white px-6 py-3 text-base font-semibold text-blue-700 hover:bg-blue-50 transition-colors duration-300"
+                className="relative w-full sm:w-auto inline-flex items-center justify-center rounded-md border border-transparent bg-white px-8 py-3 text-base font-semibold text-blue-700 hover:bg-blue-50 transition-colors duration-300"
               >
                 Get Started Now
               </button>

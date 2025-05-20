@@ -237,317 +237,212 @@ function VocabularyPage() {
   , [entries]);
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-gray-50 via-white to-blue-50">
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-gray-50 via-white to-blue-50 p-4 sm:p-6 lg:p-8">
       {/* Abstract background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <svg className="absolute w-full h-full" preserveAspectRatio="none">
+          <defs>
+            <radialGradient id="blue-gradient" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+              <stop offset="0%" stopColor="rgba(59, 130, 246, 0.1)" />
+              <stop offset="100%" stopColor="rgba(59, 130, 246, 0)" />
+            </radialGradient>
+            <radialGradient id="red-gradient" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+              <stop offset="0%" stopColor="rgba(239, 68, 68, 0.05)" />
+              <stop offset="100%" stopColor="rgba(239, 68, 68, 0)" />
+            </radialGradient>
+          </defs>
           <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="blue" strokeWidth="0.5" opacity="0.1" />
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(59, 130, 246, 0.1)" strokeWidth="0.5" />
           </pattern>
           <rect width="100%" height="100%" fill="url(#grid)" />
-          <circle cx="10%" cy="10%" r="50" fill="url(#blue-gradient)" className="animate-float-slow" />
-          <circle cx="90%" cy="90%" r="70" fill="url(#red-gradient)" className="animate-float-medium" />
-        </svg>
-        <svg className="absolute w-full h-64 top-0" preserveAspectRatio="none">
-          <defs>
-            <linearGradient id="blue-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.05" />
-              <stop offset="100%" stopColor="#1d4ed8" stopOpacity="0.1" />
-            </linearGradient>
-            <linearGradient id="red-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#ef4444" stopOpacity="0.05" />
-              <stop offset="100%" stopColor="#dc2626" stopOpacity="0.1" />
-            </linearGradient>
-          </defs>
-          <path d="M0,32 C200,100 400,0 600,50 C800,100 1000,0 1200,32 L1200,0 L0,0 Z" fill="url(#blue-gradient)" />
+          <circle cx="10%" cy="10%" r="150" fill="url(#blue-gradient)" className="animate-float-slow opacity-50" />
+          <circle cx="90%" cy="90%" r="200" fill="url(#red-gradient)" className="animate-float-medium opacity-50" />
         </svg>
       </div>
 
-      <motion.div
-        className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12"
+      <motion.div 
+        className="relative max-w-7xl mx-auto z-10"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
-        {/* Header with glass effect */}
-        <motion.header className="mb-12" variants={itemVariants}>
-          <div className="relative backdrop-blur-sm bg-white/70 rounded-2xl shadow-xl p-8 border border-white/20">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-              <div>
-                <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl flex items-center">
-                  <BookOpenIcon className="h-12 w-12 text-blue-600 mr-4 flex-shrink-0" />
-                  <span>Le Lexique</span>
-                </h1>
-                <p className="mt-3 text-lg text-gray-600">
-                  Your evolving collection of French vocabulary, thoughtfully curated for your journey.
-                </p>
-              </div>
-              <div className="flex-shrink-0">
-                <button
-                  onClick={fetchVocabulary}
-                  className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-xl text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md transition-all duration-300 disabled:opacity-50"
-                  disabled={isLoading}
-                >
-                  <ArrowPathIcon className={`h-5 w-5 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-                  Refresh
-                </button>
-              </div>
+        {/* Page Header */}
+        <motion.div variants={itemVariants} className="mb-6 sm:mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 flex items-center">
+              <BookOpenIcon className="h-8 w-8 sm:h-10 sm:w-10 mr-3 text-blue-600" />
+              My Vocabulary
+            </h1>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+              <button
+                onClick={handleAddClick}
+                className="w-full sm:w-auto flex items-center justify-center px-4 py-2.5 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              >
+                <PlusIcon className="h-5 w-5 mr-2" />
+                Add New Word
+              </button>
+              <button
+                onClick={() => fetchVocabulary()}
+                disabled={isLoading}
+                className="w-full sm:w-auto flex items-center justify-center px-4 py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 disabled:opacity-50"
+              >
+                <ArrowPathIcon className={`h-5 w-5 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+                {isLoading ? 'Refreshing...' : 'Refresh List'}
+              </button>
             </div>
           </div>
-        </motion.header>
+        </motion.div>
 
-        {/* Error Alert */}
+        {/* Search Input */}
+        <motion.div variants={itemVariants} className="mb-6 sm:mb-8">
+          <div className="relative">
+            <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search your vocabulary (e.g., 'bonjour', 'common phrases', 'verb')..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-150"
+            />
+            {searchTerm && (
+              <button 
+                onClick={() => setSearchTerm('')} 
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                <XMarkIcon className="h-5 w-5" />
+              </button>
+            )}
+          </div>
+        </motion.div>
+
+        {/* Conditional Form Rendering */}
         <AnimatePresence>
-          {error && (
-             <motion.div
-               initial={{ opacity: 0, y: -10 }}
-               animate={{ opacity: 1, y: 0 }}
-               exit={{ opacity: 0, y: -10 }}
-               className="bg-red-50 border-l-4 border-red-400 text-red-700 p-4 rounded-md mb-6 shadow"
-               role="alert"
-             >
-               <div className="flex items-start">
-                 <div className="flex-shrink-0">
-                   <ExclamationTriangleIcon className="h-5 w-5 text-red-400" aria-hidden="true" />
-                 </div>
-                 <div className="ml-3 flex-1 md:flex md:justify-between">
-                   <p className="text-sm">{error}</p>
-                   <button onClick={() => setError(null)} className="mt-2 md:mt-0 md:ml-6 text-sm font-medium text-red-600 hover:text-red-500">
-                     Dismiss
-                   </button>
-                 </div>
-               </div>
-             </motion.div>
+          {isFormVisible && (
+            <motion.div
+              id="vocabulary-form-container"
+              variants={formVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              className="bg-white p-4 sm:p-6 rounded-xl shadow-xl mb-6 sm:mb-8 border border-gray-200"
+            >
+              <VocabularyForm
+                onSubmit={handleSubmit}
+                onCancel={handleFormCancel}
+                initialData={editingEntry}
+              />
+            </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Debug Info Alert (Admin Only) */}
-         <AnimatePresence>
-          {debugInfo && session?.user?.role === 'admin' && ( // Example: Check for admin role
-             <motion.div
-               initial={{ opacity: 0, y: -10 }}
-               animate={{ opacity: 1, y: 0 }}
-               exit={{ opacity: 0, y: -10 }}
-               className="bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800 p-4 rounded-md mb-6 shadow"
-             >
-               <div className="flex items-start">
-                 <div className="flex-shrink-0">
-                   <WrenchScrewdriverIcon className="h-5 w-5 text-yellow-500" aria-hidden="true" />
-                 </div>
-                 <div className="ml-3 flex-1">
-                   <h3 className="text-sm font-semibold">Debug Info (Admin Only):</h3>
-                   <pre className="mt-2 text-xs overflow-auto max-h-40 bg-yellow-100 p-2 rounded">{debugInfo}</pre>
-                   <button onClick={() => setDebugInfo(null)} className="mt-2 text-sm font-medium text-yellow-700 hover:text-yellow-600">
-                     Dismiss
-                   </button>
-                 </div>
-               </div>
-             </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Vocabulary Form Container */}
-         <div id="vocabulary-form-container"> {/* Add ID for potential scrolling */}
-             <AnimatePresence mode="wait"> {/* mode="wait" prevents overlap during transition */}
-                  {isFormVisible && (
-                      <motion.div
-                          key="vocabulary-form"
-                          variants={formVariants}
-                          initial="hidden"
-                          animate="visible"
-                          exit="exit"
-                          className="bg-white shadow-lg rounded-lg overflow-hidden border border-gray-200" // Added border
-                      >
-                          <div className="p-6">
-                               <div className="flex justify-between items-center mb-4">
-                                  <h2 className="text-xl font-semibold text-gray-900">
-                                  {editingEntry ? 'Edit Vocabulary Entry' : 'Add New Vocabulary'}
-                                  </h2>
-                                  <button
-                                  onClick={handleFormCancel}
-                                  className="p-1 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400"
-                                  aria-label="Close form"
-                                  >
-                                  <XMarkIcon className="h-6 w-6" />
-                                  </button>
-                              </div>
-                              <VocabularyForm
-                                  onSubmit={handleSubmit}
-                                  initialData={editingEntry}
-                                  onCancel={handleFormCancel} // Pass cancel handler if form needs it
-                              />
-                          </div>
-                      </motion.div>
-                  )}
-              </AnimatePresence>
-         </div>
-
-
-        {/* Main Content Grid */}
-        <motion.div className="grid grid-cols-1 lg:grid-cols-3 gap-8" variants={itemVariants}>
-
-          {/* Sidebar */}
-          <aside className="lg:col-span-1 order-last lg:order-first space-y-6">
-              {/* Use motion.div for sidebar sections */}
-              <motion.div variants={itemVariants} className="backdrop-blur-sm bg-white/80 rounded-2xl shadow-lg border border-white/20 p-8">
-                   <div className="flex items-start">
-                     <InformationCircleIcon className="h-6 w-6 text-blue-500 mr-3 flex-shrink-0 mt-0.5" />
-                     <div>
-                        <h2 className="text-lg font-semibold text-gray-900 mb-2">About Le Lexique</h2>
-                        <p className="text-gray-600 leading-relaxed">
-                          Build your French vocabulary systematically. Each word you learn is a new color in your palette of expression.
-                        </p>
-                     </div>
-                </div>
-              </motion.div>
-
-              {/* Categories section with glass effect */}
-              <motion.div variants={itemVariants} className="backdrop-blur-sm bg-white/80 rounded-2xl shadow-lg border border-white/20 p-8">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                  <TagIcon className="h-5 w-5 mr-2 text-blue-500"/>
-                  Catégories
-                </h2>
-                {categories.length > 0 ? (
-                  <ul className="space-y-2 max-h-60 overflow-y-auto pr-2">
-                    {categories.map((category) => (
-                      <li key={category} className="group">
-                        <button
-                          className="w-full flex items-center px-4 py-2 rounded-xl text-gray-700 hover:bg-blue-50 transition-colors"
-                        >
-                          <span className={`h-2 w-2 rounded-full ${
-                            category === 'Uncategorized' ? 'bg-gray-400' : 'bg-gradient-to-r from-blue-500 to-indigo-500'
-                          } mr-3 flex-shrink-0`}></span>
-                          <span className="text-sm font-medium group-hover:text-blue-600 transition-colors">
-                            {category}
-                          </span>
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-sm text-gray-500 italic">No categories assigned yet.</p>
-                )}
-              </motion.div>
-
-              {/* Study Tips with artistic gradient */}
-              <motion.div variants={itemVariants} className="relative overflow-hidden rounded-2xl shadow-lg">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-indigo-700"></div>
-                <div className="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
-                <div className="relative p-8">
-                  <h2 className="text-lg font-semibold text-white mb-4 flex items-center">
-                    <LightBulbIcon className="h-5 w-5 mr-2 text-yellow-300"/>
-                    Conseils d'Étude
-                  </h2>
-                  <ul className="space-y-3">
-                    {[
-                      "Practice regularly using flashcards",
-                      "Create example sentences",
-                      "Learn words in context",
-                      "Review based on SRS levels"
-                    ].map((tip, index) => (
-                      <li key={index} className="flex items-start text-white/90">
-                        <svg className="h-5 w-5 text-yellow-300 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <span className="text-sm">{tip}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </motion.div>
-          </aside>
-
-          {/* Main Vocabulary Section */}
-          <motion.section className="lg:col-span-2" variants={itemVariants}>
-            <div className="backdrop-blur-sm bg-white/80 rounded-2xl shadow-lg border border-white/20 overflow-hidden">
-              {/* Search and Add Button Header */}
-              <div className="p-6 border-b border-gray-200/50 bg-gradient-to-r from-gray-50/50 to-white/50">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  <h2 className="text-xl font-semibold text-gray-800 flex items-center">
-                    <span>Entries</span>
-                    <span className="ml-2 px-2.5 py-0.5 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                      {filteredEntries.length}
-                    </span>
-                  </h2>
-                  <div className="flex-grow flex items-center justify-end gap-4">
-                    <div className="relative flex-grow max-w-xs">
-                      <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
-                      </span>
-                      <input
-                        type="search"
-                        placeholder="Search entries..."
-                        className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-xl text-sm bg-white/50 backdrop-blur-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                      />
-                    </div>
-                    <AnimatePresence>
-                      {!isFormVisible && (
-                        <motion.div
-                          initial={{ opacity: 0, scale: 0.8 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.8 }}
-                        >
-                          <button
-                            onClick={handleAddClick}
-                            className="inline-flex items-center justify-center px-6 py-2 text-sm font-medium rounded-xl text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-md transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                          >
-                            <PlusIcon className="h-5 w-5 mr-1.5" />
-                            Add Word
-                          </button>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                </div>
-              </div>
-
-              {/* Vocabulary List or Loading/Empty State */}
-              <div className="p-4 md:p-0"> {/* Remove padding here if list adds its own */}
-                {isLoading ? (
-                  <div className="py-16 text-center">
-                    <div className="inline-block animate-spin rounded-full h-10 w-10 border-4 border-blue-500 border-t-transparent mb-4"></div>
-                    <p className="text-gray-600 font-medium">Loading Vocabulary...</p>
-                  </div>
-                ) : filteredEntries.length > 0 ? (
-                  <VocabularyList
-                    entries={filteredEntries}
-                    onEdit={handleEdit}
-                    onDelete={handleDelete}
-                    // readOnly={false} // Default is false
-                  />
-                ) : (
-                  <div className="py-16 text-center px-6">
-                    <MagnifyingGlassIcon className="mx-auto h-12 w-12 text-gray-400" />
-                    <h3 className="mt-2 text-lg font-medium text-gray-900">
-                      {searchTerm ? 'No Matching Entries' : 'No Vocabulary Yet'}
-                    </h3>
-                    <p className="mt-1 text-sm text-gray-500">
-                      {searchTerm
-                        ? 'Try adjusting your search terms.'
-                        : 'Click "Add New" to add your first word or phrase.'}
-                    </p>
-                     {!searchTerm && !isFormVisible && ( // Show Add button again in empty state if form isn't open
-                         <div className="mt-6">
-                              <button
-                                  onClick={handleAddClick}
-                                  className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                              >
-                                  <PlusIcon className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
-                                  Add New Vocabulary
-                              </button>
-                          </div>
-                     )}
-                  </div>
-                )}
-              </div>
+        {/* Error Display */}
+        {error && (
+          <motion.div 
+            variants={itemVariants} 
+            className="mb-6 p-4 bg-red-100 border border-red-300 text-red-700 rounded-lg shadow-md flex items-start"
+          >
+            <ExclamationTriangleIcon className="h-6 w-6 mr-3 text-red-500 flex-shrink-0" />
+            <div>
+              <p className="font-semibold">An error occurred:</p>
+              <p className="text-sm">{error}</p>
+              {debugInfo && (
+                <details className="mt-2 text-xs">
+                  <summary className="cursor-pointer hover:underline">Show debug info</summary>
+                  <pre className="mt-1 p-2 bg-red-50 rounded whitespace-pre-wrap break-all">{debugInfo}</pre>
+                </details>
+              )}
             </div>
-          </motion.section>
+            <button onClick={() => { setError(null); setDebugInfo(null); }} className="ml-auto text-red-500 hover:text-red-700">
+                <XMarkIcon className="h-5 w-5"/>
+            </button>
+          </motion.div>
+        )}
+        
+        {/* Debug Info Display (if no error but debug info exists) */}
+        {!error && debugInfo && (
+             <motion.div 
+                variants={itemVariants} 
+                className="mb-6 p-4 bg-blue-50 border border-blue-200 text-blue-700 rounded-lg shadow-sm flex items-start"
+             >
+                <InformationCircleIcon className="h-6 w-6 mr-3 text-blue-500 flex-shrink-0" />
+                <div>
+                    <p className="font-semibold">Developer Information:</p>
+                    <p className="text-sm">{debugInfo}</p>
+                </div>
+                <button onClick={() => setDebugInfo(null)} className="ml-auto text-blue-500 hover:text-blue-700">
+                    <XMarkIcon className="h-5 w-5"/>
+                </button>
+             </motion.div>
+        )}
+
+
+        {/* Loading State or Content */}
+        <motion.div variants={itemVariants}>
+          {isLoading && filteredEntries.length === 0 ? (
+            <div className="flex flex-col items-center justify-center text-gray-500 py-10 sm:py-20">
+              <ArrowPathIcon className="h-12 w-12 sm:h-16 sm:w-16 text-blue-500 animate-spin mb-4" />
+              <p className="text-lg sm:text-xl font-medium">Loading your vocabulary...</p>
+              <p className="text-sm">Please wait a moment.</p>
+            </div>
+          ) : !isLoading && entries.length === 0 && !error ? (
+            // Enhanced Empty State
+            <div className="text-center py-10 sm:py-20 bg-white rounded-lg shadow-lg border border-gray-200">
+                <WrenchScrewdriverIcon className="h-16 w-16 sm:h-20 sm:w-20 mx-auto text-gray-400 mb-6" />
+                <h2 className="text-2xl sm:text-3xl font-semibold text-gray-700 mb-3">Your Vocabulary List is Empty</h2>
+                <p className="text-gray-500 mb-6 max-w-md mx-auto px-4">
+                    It looks like you haven't added any words or phrases yet. 
+                    Start building your personal French dictionary!
+                </p>
+                <button
+                    onClick={handleAddClick}
+                    className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition-colors duration-150 text-base font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                >
+                    <PlusIcon className="h-5 w-5 mr-2" />
+                    Add Your First Word
+                </button>
+                <div className="mt-8 text-sm text-gray-400 flex items-center justify-center">
+                    <LightBulbIcon className="h-4 w-4 mr-1.5"/>
+                    <span>Tip: Add words you encounter in lessons, conversations, or media.</span>
+                </div>
+            </div>
+          ) : (
+            <>
+              {/* Categories/Filter Section (Optional - if you plan to add category filters) */}
+              {/* 
+              <div className="mb-4 sm:mb-6 flex flex-wrap gap-2">
+                <button className="px-3 py-1.5 text-xs sm:text-sm bg-blue-500 text-white rounded-full hover:bg-blue-600">All</button>
+                {categories.map(category => (
+                  <button 
+                    key={category}
+                    className="px-3 py-1.5 text-xs sm:text-sm bg-gray-200 text-gray-700 rounded-full hover:bg-gray-300 flex items-center"
+                  >
+                    <TagIcon className="h-3.5 w-3.5 mr-1.5 text-gray-500"/> 
+                    {category}
+                  </button>
+                ))}
+              </div> 
+              */}
+              
+              <VocabularyList
+                entries={filteredEntries}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+              />
+              {filteredEntries.length === 0 && searchTerm && !isLoading && (
+                <div className="text-center py-10 sm:py-16 text-gray-500 bg-white rounded-lg shadow border border-gray-200 mt-6">
+                  <MagnifyingGlassIcon className="h-12 w-12 sm:h-16 sm:w-16 mx-auto text-gray-400 mb-4" />
+                  <h3 className="text-xl sm:text-2xl font-semibold text-gray-700">No Results Found</h3>
+                  <p className="mt-2 text-sm">
+                    No entries match your search term "{searchTerm}". Try a different search.
+                  </p>
+                </div>
+              )}
+            </>
+          )}
         </motion.div>
       </motion.div>
     </div>
   );
 }
 
-export default withAuth(VocabularyPage); // Apply authentication HOC
+export default withAuth(VocabularyPage);
